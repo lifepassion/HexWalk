@@ -868,11 +868,6 @@ void HexWalkMain::setWidth()
         value = 8;
         widthText->setText(QString("%1").arg(value));
     }
-    else if(value > 64)
-    {
-        value = 64;
-        widthText->setText(QString("%1").arg(value));
-    }
 
     appSettings->setValue("BytesPerLine",value);
     hexEdit->setBytesPerLine(value);
@@ -965,7 +960,7 @@ void HexWalkMain::readSettings()
         restoreGeometry(appSettings->value("mainWindowGeometry").toByteArray());
         restoreState(appSettings->value("mainWindowState").toByteArray());
         int bytesperline = appSettings->value("BytesPerLine").toInt();
-        if( bytesperline > 0 && bytesperline < 64 )
+        if( bytesperline > 0 )
         {
             hexEdit->setBytesPerLine(bytesperline);
             widthText->setText(QString("%1").arg(bytesperline));
