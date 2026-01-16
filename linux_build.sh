@@ -5,6 +5,6 @@ else
 fi
 
 cd build
-qmake ../hexwalk/hexwalk.pro
+qmake-qt5 ../hexwalk/hexwalk.pro
 make
 cd ..
