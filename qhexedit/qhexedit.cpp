@@ -1010,14 +1010,14 @@ void QHexEdit::paintEvent(QPaintEvent *event)
                 for(int i=0; i<colorTag->size(); i++)
                 {
                     const ColorTag& tag0 = colorTag->at(i);
-                    qint64 tagEnd = tag0.pos + tag0.size;
+                    qint64 tagEnd = (qint64)tag0.pos + (qint64)tag0.size;
 
                     // Skip tags that don't overlap with this line
-                    if (tagEnd <= lineStart || tag0.pos >= lineEnd)
+                    if (tagEnd <= lineStart || (qint64)tag0.pos >= lineEnd)
                         continue;
 
                     // Calculate overlap range
-                    qint64 overlapStart = qMax(tag0.pos, lineStart);
+                    qint64 overlapStart = qMax((qint64)tag0.pos, lineStart);
                     qint64 overlapEnd = qMin(tagEnd, lineEnd);
 
                     QColor tempColor = QColor(QString::fromStdString(tag0.color));
