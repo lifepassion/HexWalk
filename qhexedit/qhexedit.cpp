@@ -14,7 +14,7 @@
 QHexEdit::QHexEdit(QWidget *parent) : QAbstractScrollArea(parent)
     , _addressArea(true)
     , _addressWidth(4)
-    , _asciiArea(true)
+    , _asciiArea(false)
     , _bytesPerLine(16)
     , _hexCharsInLine(47)
     , _highlighting(true)
@@ -51,7 +51,7 @@ QHexEdit::QHexEdit(QWidget *parent) : QAbstractScrollArea(parent)
     _scrollMult = 1;
     setAddressWidth(4);
     setAddressArea(true);
-    setAsciiArea(true);
+    setAsciiArea(false);
     setOverwriteMode(true);
     setHighlighting(true);
     setReadOnly(false);

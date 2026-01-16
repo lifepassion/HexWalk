@@ -167,7 +167,7 @@ void OptionsDialog::on_buttonBox_clicked(QAbstractButton *button)
     if(button == ui->buttonBox->button(QDialogButtonBox::RestoreDefaults))
     {
         ui->cbAddressArea->setChecked(true);
-        ui->cbAsciiArea->setChecked(true);
+        ui->cbAsciiArea->setChecked(false);
         ui->cbHighlighting->setChecked(true);
         ui->cbOverwriteMode->setChecked(true);
         ui->cbReadOnly->setChecked(false);

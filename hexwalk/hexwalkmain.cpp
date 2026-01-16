@@ -925,7 +925,7 @@ void HexWalkMain::readSettings()
     if(appSettings->value("BytesPerLine").toInt()<=0)
     {
         appSettings->setValue("AddressArea",true);
-        appSettings->setValue("AsciiArea",true);
+        appSettings->setValue("AsciiArea",false);
         appSettings->setValue("Highlighting",true);
         appSettings->setValue("OverwriteMode",true);
         appSettings->setValue("ReadOnly",false);
