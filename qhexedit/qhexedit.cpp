@@ -967,32 +967,30 @@ void QHexEdit::paintEvent(QPaintEvent *event)
 
         for (int row = 0, pxPosY = pxPosStartY; row <= _rowsShown; row++, pxPosY +=_pxCharHeight)
         {
-            QByteArray hex;
             int pxPosX = _pxPosHexX  - pxOfsX;
             int pxPosAsciiX2 = _pxPosAsciiX  - pxOfsX;
             qint64 bPosLine = row * _bytesPerLine;
-            for (int colIdx = 0; ((bPosLine + colIdx) < _dataShown.size() && (colIdx < _bytesPerLine)); colIdx++)
+            int bytesInLine = qMin((qint64)_bytesPerLine, _dataShown.size() - bPosLine);
+
+            if (bytesInLine <= 0)
+                continue;
+
+            // First pass: Draw backgrounds for all bytes in the line
+            for (int colIdx = 0; colIdx < bytesInLine; colIdx++)
             {
                 QColor c = viewport()->palette().color(QPalette::Base);
-                painter.setPen(QPen(_hexFontColor));
-
                 qint64 posBa = _bPosFirst + bPosLine + colIdx;
+
                 if ((getSelectionBegin() <= posBa) && (getSelectionEnd() > posBa))
                 {
                     c = _brushSelection.color();
-                    painter.setPen(_penSelection);
                 }
-                else
+                else if (_highlighting && _markedShown.at((int)(posBa - _bPosFirst)))
                 {
-                    if (_highlighting)
-                        if (_markedShown.at((int)(posBa - _bPosFirst)))
-                        {
-                            c = _brushHighlighted.color();
-                            painter.setPen(_penHighlighted);
-                        }
+                    c = _brushHighlighted.color();
                 }
 
-                // render hex value
+                // render hex background
                 QRect r;
                 if (colIdx == 0)
                     r.setRect(pxPosX, pxPosY - _pxCharHeight + _pxSelectionSub, 2*_pxCharWidth, _pxCharHeight);
@@ -1000,40 +998,120 @@ void QHexEdit::paintEvent(QPaintEvent *event)
                     r.setRect(pxPosX - _pxCharWidth, pxPosY - _pxCharHeight + _pxSelectionSub, 3*_pxCharWidth, _pxCharHeight);
                 painter.fillRect(r,c);
 
-                QRect tagrect;
-                if(colorTag)
+                pxPosX += 3*_pxCharWidth;
+            }
+
+            // Second pass: Draw colorTag overlays (optimized - only for visible tags)
+            if(colorTag && colorTag->size() > 0)
+            {
+                qint64 lineStart = _bPosFirst + bPosLine;
+                qint64 lineEnd = lineStart + bytesInLine;
+
+                for(int i=0; i<colorTag->size(); i++)
                 {
-                    for(int i=0;i<colorTag->size();i++)
+                    const ColorTag& tag0 = colorTag->at(i);
+                    qint64 tagEnd = tag0.pos + tag0.size;
+
+                    // Skip tags that don't overlap with this line
+                    if (tagEnd <= lineStart || tag0.pos >= lineEnd)
+                        continue;
+
+                    // Calculate overlap range
+                    qint64 overlapStart = qMax(tag0.pos, lineStart);
+                    qint64 overlapEnd = qMin(tagEnd, lineEnd);
+
+                    QColor tempColor = QColor(QString::fromStdString(tag0.color));
+                    tempColor.setAlpha(80);
+
+                    // Draw rectangles for overlapping bytes
+                    for (qint64 pos = overlapStart; pos < overlapEnd; pos++)
                     {
-                        ColorTag  tag0 = colorTag->at(i);
-                        if(posBa >= tag0.pos && posBa < (tag0.pos + tag0.size))
-                        {
-                            if (colIdx == 0)
-                                tagrect.setRect(pxPosX, pxPosY - _pxCharHeight + _pxSelectionSub, 2*_pxCharWidth, _pxCharHeight);
-                            else
-                                tagrect.setRect(pxPosX - _pxCharWidth, pxPosY - _pxCharHeight + _pxSelectionSub, 3*_pxCharWidth, _pxCharHeight);
-                            QColor tempColor = QColor(QString::fromStdString(tag0.color));
-                            tempColor.setAlpha(80);
-                            painter.fillRect(tagrect, QBrush(tempColor));
-                        }
+                        int colIdx = pos - lineStart;
+                        int tagPosX = _pxPosHexX - pxOfsX + colIdx * 3 * _pxCharWidth;
+
+                        QRect tagrect;
+                        if (colIdx == 0)
+                            tagrect.setRect(tagPosX, pxPosY - _pxCharHeight + _pxSelectionSub, 2*_pxCharWidth, _pxCharHeight);
+                        else
+                            tagrect.setRect(tagPosX - _pxCharWidth, pxPosY - _pxCharHeight + _pxSelectionSub, 3*_pxCharWidth, _pxCharHeight);
+                        painter.fillRect(tagrect, QBrush(tempColor));
                     }
                 }
+            }
 
-                hex = _hexDataShown.mid((bPosLine + colIdx) * 2, 2);
+            // Third pass: Draw hex text (batch drawing for better performance)
+            pxPosX = _pxPosHexX - pxOfsX;
+            QPen hexPen(_hexFontColor);
+            QPen currentPen = hexPen;
+            painter.setPen(currentPen);
+
+            for (int colIdx = 0; colIdx < bytesInLine; colIdx++)
+            {
+                qint64 posBa = _bPosFirst + bPosLine + colIdx;
+
+                // Set pen color based on selection/highlighting (only if changed)
+                QPen newPen = hexPen;
+                if ((getSelectionBegin() <= posBa) && (getSelectionEnd() > posBa))
+                {
+                    newPen = _penSelection;
+                }
+                else if (_highlighting && _markedShown.at((int)(posBa - _bPosFirst)))
+                {
+                    newPen = _penHighlighted;
+                }
+
+                if (newPen != currentPen)
+                {
+                    currentPen = newPen;
+                    painter.setPen(currentPen);
+                }
+
+                QByteArray hex = _hexDataShown.mid((bPosLine + colIdx) * 2, 2);
                 painter.drawText(pxPosX, pxPosY, hexCaps()?hex.toUpper():hex);
                 pxPosX += 3*_pxCharWidth;
+            }
 
-                // render ascii value
-                if (_asciiArea)
+            // Fourth pass: render ascii area
+            if (_asciiArea)
+            {
+                QPen asciiPen(_asciiFontColor);
+                QPen currentAsciiPen = asciiPen;
+                painter.setPen(currentAsciiPen);
+
+                for (int colIdx = 0; colIdx < bytesInLine; colIdx++)
                 {
-                    if (c == viewport()->palette().color(QPalette::Base))
+                    qint64 posBa = _bPosFirst + bPosLine + colIdx;
+                    QColor c;
+                    QPen newAsciiPen = asciiPen;
+
+                    if ((getSelectionBegin() <= posBa) && (getSelectionEnd() > posBa))
+                    {
+                        c = _brushSelection.color();
+                        newAsciiPen = _penSelection;
+                    }
+                    else if (_highlighting && _markedShown.at((int)(posBa - _bPosFirst)))
+                    {
+                        c = _brushHighlighted.color();
+                        newAsciiPen = _penHighlighted;
+                    }
+                    else
+                    {
                         c = _asciiAreaColor;
+                    }
+
+                    if (newAsciiPen != currentAsciiPen)
+                    {
+                        currentAsciiPen = newAsciiPen;
+                        painter.setPen(currentAsciiPen);
+                    }
+
                     int ch = (uchar)_dataShown.at(bPosLine + colIdx);
                     if ( ch < ' ' || ch > '~' )
                         ch = '.';
+
+                    QRect r;
                     r.setRect(pxPosAsciiX2, pxPosY - _pxCharHeight + _pxSelectionSub, _pxCharWidth, _pxCharHeight);
                     painter.fillRect(r, c);
-                    painter.setPen(QPen(_asciiFontColor));
                     painter.drawText(pxPosAsciiX2, pxPosY, QChar(ch));
                     pxPosAsciiX2 += _pxCharWidth;
                 }
