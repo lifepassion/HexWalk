@@ -17,8 +17,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 #include <QApplication>
+#include <QCommandLineParser>
+#include <QFontDatabase>
 #include <QIcon>
+#include <QLocale>
+#include <QPalette>
 #include <QStyleFactory>
+#include <QTranslator>
 
 #include "hexwalkmain.h"
 int main(int argc, char *argv[])
@@ -29,13 +34,17 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setApplicationName("HexWalk");
     app.setOrganizationName("HexWalk");
+#ifdef Q_OS_WIN32
     app.setWindowIcon(QIcon(":images/hexwalk.ico"));
+#else
+    app.setWindowIcon(QIcon(":images/hexwalk64.png"));
+#endif
     // set style
     app.setStyle(QStyleFactory::create("Fusion"));
     // increase font size for better reading
     QString fontPath1=":/fonts/Roboto.ttf";
     QString fontPath2=":/fonts/Courier.ttf";
-    int fontId = QFontDatabase::addApplicationFont(fontPath1);
+    QFontDatabase::addApplicationFont(fontPath1);
     QFontDatabase::addApplicationFont(fontPath2);
     //if (fontId != -1)
     //{
@@ -46,30 +55,49 @@ int main(int argc, char *argv[])
     /*QFont defaultFont = QApplication::font();
     defaultFont.setPointSize(defaultFont.pointSize()+2);
     app.setFont(defaultFont);*/
-    // modify palette to dark
-    QPalette darkPalette;
-    darkPalette.setColor(QPalette::Window,QColor(53,53,53));
-    darkPalette.setColor(QPalette::WindowText,Qt::white);
-    darkPalette.setColor(QPalette::Disabled,QPalette::WindowText,QColor(127,127,127));
-    darkPalette.setColor(QPalette::Base,QColor(42,42,42));
-    darkPalette.setColor(QPalette::AlternateBase,QColor(66,66,66));
-    darkPalette.setColor(QPalette::ToolTipBase,Qt::white);
-    darkPalette.setColor(QPalette::ToolTipText,Qt::black);
-    darkPalette.setColor(QPalette::Text,Qt::white);
-    darkPalette.setColor(QPalette::Disabled,QPalette::Text,QColor(127,127,127));
-    darkPalette.setColor(QPalette::Dark,QColor(35,35,35));
-    darkPalette.setColor(QPalette::Shadow,QColor(20,20,20));
-    darkPalette.setColor(QPalette::Button,QColor(53,53,53));
-    darkPalette.setColor(QPalette::ButtonText,Qt::white);
-    darkPalette.setColor(QPalette::Disabled,QPalette::ButtonText,QColor(127,127,127));
-    darkPalette.setColor(QPalette::BrightText,Qt::red);
-    darkPalette.setColor(QPalette::Link,QColor(42,130,218));
-    darkPalette.setColor(QPalette::Highlight,QColor(42,130,218));
-    darkPalette.setColor(QPalette::Disabled,QPalette::Highlight,QColor(80,80,80));
-    darkPalette.setColor(QPalette::HighlightedText,Qt::white);
-    darkPalette.setColor(QPalette::Disabled,QPalette::HighlightedText,QColor(127,127,127));
+    QPalette workbenchPalette;
+    workbenchPalette.setColor(QPalette::Window, QColor("#f4f6f8"));
+    workbenchPalette.setColor(QPalette::WindowText, QColor("#18202a"));
+    workbenchPalette.setColor(QPalette::Base, QColor("#ffffff"));
+    workbenchPalette.setColor(QPalette::AlternateBase, QColor("#eef2f6"));
+    workbenchPalette.setColor(QPalette::Text, QColor("#18202a"));
+    workbenchPalette.setColor(QPalette::Button, QColor("#f8fafc"));
+    workbenchPalette.setColor(QPalette::ButtonText, QColor("#18202a"));
+    workbenchPalette.setColor(QPalette::ToolTipBase, QColor("#18202a"));
+    workbenchPalette.setColor(QPalette::ToolTipText, QColor("#ffffff"));
+    workbenchPalette.setColor(QPalette::Highlight, QColor("#2f6f9f"));
+    workbenchPalette.setColor(QPalette::HighlightedText, QColor("#ffffff"));
+    workbenchPalette.setColor(QPalette::Link, QColor("#2563eb"));
+    workbenchPalette.setColor(QPalette::Dark, QColor("#c7d0dc"));
+    workbenchPalette.setColor(QPalette::Mid, QColor("#d8dee8"));
+    workbenchPalette.setColor(QPalette::Shadow, QColor("#aab4c2"));
+    app.setPalette(workbenchPalette);
 
-    app.setPalette(darkPalette);
+    app.setStyleSheet(
+        "QMainWindow, QDialog { background: #f4f6f8; color: #18202a; }"
+        "QMenuBar { background: #f8fafc; border-bottom: 1px solid #d8dee8; padding: 2px; }"
+        "QMenuBar::item { padding: 5px 10px; border-radius: 4px; }"
+        "QMenuBar::item:selected { background: #e6edf5; }"
+        "QMenu { background: #ffffff; border: 1px solid #cfd8e3; padding: 4px; }"
+        "QMenu::item { padding: 5px 24px 5px 24px; border-radius: 4px; }"
+        "QMenu::item:selected { background: #e8f1fa; color: #12324a; }"
+        "QToolBar { background: #f8fafc; border: 0; border-bottom: 1px solid #d8dee8; spacing: 6px; padding: 5px; }"
+        "QToolButton { background: transparent; border: 1px solid transparent; border-radius: 4px; padding: 5px; }"
+        "QToolButton:hover { background: #e8f1fa; border-color: #c7d8e8; }"
+        "QToolButton:pressed { background: #dceaf7; }"
+        "QLineEdit { background: #ffffff; border: 1px solid #b9c6d3; border-radius: 4px; padding: 3px 6px; selection-background-color: #2f6f9f; }"
+        "QLineEdit:focus { border-color: #2f6f9f; }"
+        "QGroupBox { background: #ffffff; border: 1px solid #d4dce6; border-radius: 6px; margin-top: 14px; padding: 10px; font-weight: 600; }"
+        "QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; color: #364152; }"
+        "QLabel[valueLabel=\"true\"], QLabel[statusValue=\"true\"] { background: #f8fafc; border: 1px solid #d4dce6; border-radius: 4px; padding: 4px 7px; color: #17202a; }"
+        "QLabel[fieldLabel=\"true\"] { color: #536172; font-weight: 600; }"
+        "QStatusBar { background: #f8fafc; border-top: 1px solid #d8dee8; color: #536172; }"
+        "QScrollBar:vertical { background: #edf2f7; width: 12px; margin: 0; }"
+        "QScrollBar::handle:vertical { background: #b7c3d0; min-height: 24px; border-radius: 5px; }"
+        "QScrollBar:horizontal { background: #edf2f7; height: 12px; margin: 0; }"
+        "QScrollBar::handle:horizontal { background: #b7c3d0; min-width: 24px; border-radius: 5px; }"
+        "QScrollBar::add-line, QScrollBar::sub-line { width: 0; height: 0; }"
+    );
 
 
     // Identify locale and load translation if available

@@ -225,7 +225,7 @@ void QHexEdit::setCursorPosition(qint64 position)
 
     // 3. Calc new position of cursor
     _bPosCurrent = position / 2;
-    _pxCursorY = ((position / 2 - _bPosFirst) / _bytesPerLine + 1) * _pxCharHeight;
+    _pxCursorY = ((position / 2 - _bPosFirst) / _bytesPerLine + 2) * _pxCharHeight;
     int x = (position % (2 * _bytesPerLine));
     if (_editAreaIsAscii)
     {
@@ -261,7 +261,9 @@ qint64 QHexEdit::cursorPosition(QPoint pos)
     // Calc cursor position depending on a graphical position
     qint64 result = -1;
     int posX = pos.x() + horizontalScrollBar()->value();
-    int posY = pos.y() - 3;
+    int posY = pos.y() - _pxCharHeight - 3;
+    if (posY < 0)
+        return result;
     if ((posX >= _pxPosHexX) && (posX < (_pxPosHexX + (1 + _hexCharsInLine) * _pxCharWidth)))
     {
         _editAreaIsAscii = false;
@@ -928,32 +930,85 @@ void QHexEdit::paintEvent(QPaintEvent *event)
 {
     QPainter painter(viewport());
     int pxOfsX = horizontalScrollBar()->value();
+    const QRect clipRect = event->rect();
+    const int logicalLeft = pxOfsX + clipRect.left();
+    const int logicalRight = pxOfsX + clipRect.right();
 
-    if (event->rect() != _cursorRect)
+    if (event->rect() != _cursorRect && event->rect() != _cursorRect2)
     {
-        int pxPosStartY = _pxCharHeight;
+        int pxPosStartY = 2 * _pxCharHeight;
 
         // draw some patterns if needed
-        painter.fillRect(event->rect(), viewport()->palette().color(QPalette::Base));
+        painter.fillRect(clipRect, viewport()->palette().color(QPalette::Base));
         if (_addressArea)
         {
-            painter.fillRect(QRect(-pxOfsX, event->rect().top(), _pxPosHexX - _pxGapAdrHex/2, height()), _addressAreaColor);
+            painter.fillRect(QRect(-pxOfsX, clipRect.top(), _pxPosHexX - _pxGapAdrHex/2, height()), _addressAreaColor);
         }
         if (_asciiArea)
         {
             int linePos = _pxPosAsciiX - (_pxGapHexAscii / 2);
             painter.setPen(Qt::gray);
-            painter.drawLine(linePos - pxOfsX, event->rect().top(), linePos - pxOfsX, height());
+            painter.drawLine(linePos - pxOfsX, clipRect.top(), linePos - pxOfsX, height());
+        }
+        if (clipRect.top() < _pxCharHeight)
+        {
+            painter.fillRect(QRect(clipRect.left(), 0, clipRect.width(), _pxCharHeight), QColor("#eef2f7"));
+            painter.setPen(QColor("#d4dce6"));
+            painter.drawLine(clipRect.left(), _pxCharHeight - 1, clipRect.right(), _pxCharHeight - 1);
         }
 
         painter.setPen(viewport()->palette().color(QPalette::WindowText));
+
+        int firstVisibleCol = _bytesPerLine;
+        int lastVisibleCol = -1;
+        const int hexAreaLeft = _pxPosHexX - _pxCharWidth;
+        const int hexAreaRight = _pxPosHexX + (_bytesPerLine - 1) * 3 * _pxCharWidth + 2 * _pxCharWidth;
+        if (logicalRight >= hexAreaLeft && logicalLeft <= hexAreaRight)
+        {
+            int firstHexCol = std::max(0, (logicalLeft - _pxPosHexX - 2 * _pxCharWidth) / (3 * _pxCharWidth));
+            int lastHexCol = std::min(_bytesPerLine - 1, (logicalRight - _pxPosHexX + _pxCharWidth) / (3 * _pxCharWidth));
+            firstVisibleCol = std::min(firstVisibleCol, firstHexCol);
+            lastVisibleCol = std::max(lastVisibleCol, lastHexCol);
+        }
+
+        if (_asciiArea)
+        {
+            const int asciiAreaRight = _pxPosAsciiX + _bytesPerLine * _pxCharWidth;
+            if (logicalRight >= _pxPosAsciiX && logicalLeft <= asciiAreaRight)
+            {
+                int firstAsciiCol = std::max(0, (logicalLeft - _pxPosAsciiX) / _pxCharWidth);
+                int lastAsciiCol = std::min(_bytesPerLine - 1, (logicalRight - _pxPosAsciiX) / _pxCharWidth);
+                firstVisibleCol = std::min(firstVisibleCol, firstAsciiCol);
+                lastVisibleCol = std::max(lastVisibleCol, lastAsciiCol);
+            }
+        }
+
+        if (clipRect.top() < _pxCharHeight && firstVisibleCol <= lastVisibleCol)
+        {
+            painter.setPen(QPen(_addressFontColor));
+            int digits = QString::number(std::max(0, _bytesPerLine - 1), 10).length();
+            int headerStep = std::max(1, (digits + 2) / 3);
+            for (int colIdx = firstVisibleCol; colIdx <= lastVisibleCol; colIdx++)
+            {
+                if (colIdx % headerStep != 0)
+                    continue;
+                int pxPosX = _pxPosHexX + colIdx * 3 * _pxCharWidth - pxOfsX;
+                QRect textRect(pxPosX, 0, headerStep * 3 * _pxCharWidth, _pxCharHeight);
+                painter.drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, QString::number(colIdx, 10));
+            }
+        }
+
+        const int firstVisibleRow = std::max(0, (clipRect.top() - _pxCharHeight - _pxSelectionSub) / _pxCharHeight);
+        const int lastVisibleRow = std::min(_rowsShown, (clipRect.bottom() - _pxCharHeight + _pxCharHeight) / _pxCharHeight);
 
         // paint address area
         if (_addressArea)
         {
             QString address;
-            for (int row=0, pxPosY = _pxCharHeight; row <= (_dataShown.size()/_bytesPerLine); row++, pxPosY +=_pxCharHeight)
+            const int lastAddressRow = std::min(lastVisibleRow, _dataShown.size() / _bytesPerLine);
+            for (int row = firstVisibleRow; row <= lastAddressRow; row++)
             {
+                int pxPosY = pxPosStartY + row * _pxCharHeight;
                 address = QString("%1").arg(_bPosFirst + row*_bytesPerLine + _addressOffset, _addrDigits, 16, QChar('0'));
                 painter.setPen(QPen(_addressFontColor));
                 painter.drawText(_pxPosAdrX - pxOfsX, pxPosY, hexCaps() ? address.toUpper() : address);
@@ -965,18 +1020,19 @@ void QHexEdit::paintEvent(QPaintEvent *event)
 
         painter.setBackgroundMode(Qt::TransparentMode);
 
-        for (int row = 0, pxPosY = pxPosStartY; row <= _rowsShown; row++, pxPosY +=_pxCharHeight)
+        for (int row = firstVisibleRow; row <= lastVisibleRow; row++)
         {
             QByteArray hex;
-            int pxPosX = _pxPosHexX  - pxOfsX;
-            int pxPosAsciiX2 = _pxPosAsciiX  - pxOfsX;
+            int pxPosY = pxPosStartY + row * _pxCharHeight;
             qint64 bPosLine = row * _bytesPerLine;
-            for (int colIdx = 0; ((bPosLine + colIdx) < _dataShown.size() && (colIdx < _bytesPerLine)); colIdx++)
+            for (int colIdx = firstVisibleCol; ((bPosLine + colIdx) < _dataShown.size() && (colIdx <= lastVisibleCol)); colIdx++)
             {
                 QColor c = viewport()->palette().color(QPalette::Base);
                 painter.setPen(QPen(_hexFontColor));
 
                 qint64 posBa = _bPosFirst + bPosLine + colIdx;
+                int pxPosX = _pxPosHexX + colIdx * 3 * _pxCharWidth - pxOfsX;
+                int pxPosAsciiX2 = _pxPosAsciiX + colIdx * _pxCharWidth - pxOfsX;
                 if ((getSelectionBegin() <= posBa) && (getSelectionEnd() > posBa))
                 {
                     c = _brushSelection.color();
@@ -1005,7 +1061,7 @@ void QHexEdit::paintEvent(QPaintEvent *event)
                 {
                     for(int i=0;i<colorTag->size();i++)
                     {
-                        ColorTag  tag0 = colorTag->at(i);
+                        const ColorTag &tag0 = colorTag->at(i);
                         if(posBa >= tag0.pos && posBa < (tag0.pos + tag0.size))
                         {
                             if (colIdx == 0)
@@ -1021,7 +1077,6 @@ void QHexEdit::paintEvent(QPaintEvent *event)
 
                 hex = _hexDataShown.mid((bPosLine + colIdx) * 2, 2);
                 painter.drawText(pxPosX, pxPosY, hexCaps()?hex.toUpper():hex);
-                pxPosX += 3*_pxCharWidth;
 
                 // render ascii value
                 if (_asciiArea)
@@ -1211,7 +1266,7 @@ void QHexEdit::adjust()
     horizontalScrollBar()->setPageStep(viewport()->width());
 
     // set verticalScrollbar()
-    _rowsShown = ((viewport()->height()-4)/_pxCharHeight);
+    _rowsShown = std::max(0, ((viewport()->height()-4)/_pxCharHeight) - 1);
     qint64 lineCount = _chunks->size() / (qint64)_bytesPerLine + 1;
     if(lineCount >= 1024*1024*1024){
         _scrollMult = ceil(lineCount/(1024*1024*1024));

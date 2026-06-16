@@ -5,6 +5,6 @@ else
 fi
 
 cd build
-qmake-qt5 ../hexwalk/hexwalk.pro
-make
+qmake ../hexwalk/hexwalk.pro
+make -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)"
 cd ..

@@ -1,0 +1,19 @@
+Toolbar icons are from Google Material Icons.
+
+Source: https://github.com/google/material-design-icons
+License: Apache License 2.0
+License text: https://github.com/google/material-design-icons/blob/master/LICENSE
+
+Downloaded icons:
+- folder_open -> open.png
+- save -> save.png
+- undo -> undo.png
+- redo -> redo.png
+- search -> find.png
+- assessment -> entropy.png
+- compare_arrows -> diff.png
+- code -> binary.png
+- label -> tags.png
+- text_fields -> strings.png
+- grid_on -> bytemap.png
+- memory -> disasm.png

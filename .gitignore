@@ -1,4 +1,5 @@
 build-*
+!.github/workflows/build-packages.yml
 build/
 deploy_linux/
 deploy_win/

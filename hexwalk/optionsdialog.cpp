@@ -172,21 +172,20 @@ void OptionsDialog::on_buttonBox_clicked(QAbstractButton *button)
         ui->cbOverwriteMode->setChecked(true);
         ui->cbReadOnly->setChecked(false);
 
-        setColor(ui->lbHighlightingColor, QColor("#540c00"));
-        setColor(ui->lbAddressAreaColor, QColor("#545454"));
-        setColor(ui->lbSelectionColor, QColor("#0998c7"));
-        setColor(ui->lbAddressFontColor, QColor("#f0f0f0"));
-        setColor(ui->lbAsciiAreaColor, QColor("#424242"));
-        setColor(ui->lbAsciiFontColor, QColor("#00ff5e"));
-        setColor(ui->lbHexFontColor, QColor("#00ff5e"));
+        setColor(ui->lbHighlightingColor, QColor("#fff1b8"));
+        setColor(ui->lbAddressAreaColor, QColor("#edf2f7"));
+        setColor(ui->lbSelectionColor, QColor("#2f6f9f"));
+        setColor(ui->lbAddressFontColor, QColor("#5b6876"));
+        setColor(ui->lbAsciiAreaColor, QColor("#f8fafc"));
+        setColor(ui->lbAsciiFontColor, QColor("#1d2733"));
+        setColor(ui->lbHexFontColor, QColor("#17202a"));
     #ifdef Q_OS_WIN32
-        ui->leWidgetFont->setFont(QFont("Courier",12));
+        ui->leWidgetFont->setFont(QFont("Courier",11));
     #else
-        ui->leWidgetFont->setFont(QFont("Monospace",12));
+        ui->leWidgetFont->setFont(QFont("Monospace",11));
     #endif
 
         ui->sbAddressAreaWidth->setValue(6);
         ui->sbBytesPerLine->setValue(16);
         }
 }
-

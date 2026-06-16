@@ -28,6 +28,7 @@
 #include <QFontDialog>
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QStyle>
 
 #include "hexwalkmain.h"
 #include "ui_hexwalkmain.h"
@@ -111,6 +112,7 @@ void HexWalkMain::init()
     createStatusBar();
 
     readSettings();
+    applyInterfacePolish();
 
 
     setUnifiedTitleAndToolBarOnMac(true);
@@ -183,7 +185,7 @@ void HexWalkMain::createStatusBar()
     lbAddress = new QLabel();
     lbAddress->setFrameShape(QFrame::Panel);
     lbAddress->setFrameShadow(QFrame::Sunken);
-    lbAddress->setMinimumWidth(100);
+    lbAddress->setMinimumWidth(260);
     statusBar()->addPermanentWidget(lbAddress);
     connect(hexEdit, SIGNAL(currentAddressChanged(qint64)), this, SLOT(setAddress(qint64)));
 
@@ -194,7 +196,7 @@ void HexWalkMain::createStatusBar()
     lbSize = new QLabel();
     lbSize->setFrameShape(QFrame::Panel);
     lbSize->setFrameShadow(QFrame::Sunken);
-    lbSize->setMinimumWidth(70);
+    lbSize->setMinimumWidth(90);
     statusBar()->addPermanentWidget(lbSize);
     connect(hexEdit, SIGNAL(currentSizeChanged(qint64)), this, SLOT(setSize(qint64)));
 
@@ -205,7 +207,7 @@ void HexWalkMain::createStatusBar()
     lbOverwriteMode = new QLabel();
     lbOverwriteMode->setFrameShape(QFrame::Panel);
     lbOverwriteMode->setFrameShadow(QFrame::Sunken);
-    lbOverwriteMode->setMinimumWidth(70);
+    lbOverwriteMode->setMinimumWidth(90);
     statusBar()->addPermanentWidget(lbOverwriteMode);
     setOverwriteMode(hexEdit->overwriteMode());
 
@@ -357,15 +359,24 @@ void HexWalkMain::createToolBars()
 {
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->setObjectName("file");
+    fileToolBar->setMovable(false);
+    fileToolBar->setIconSize(QSize(20, 20));
+    fileToolBar->setToolButtonStyle(Qt::ToolButtonIconOnly);
     fileToolBar->addAction(openAct);
     fileToolBar->addAction(saveAct);
     editToolBar = addToolBar(tr("Edit"));
     editToolBar->setObjectName("edit");
+    editToolBar->setMovable(false);
+    editToolBar->setIconSize(QSize(20, 20));
+    editToolBar->setToolButtonStyle(Qt::ToolButtonIconOnly);
     editToolBar->addAction(undoAct);
     editToolBar->addAction(redoAct);
     editToolBar->addAction(advancedFindAct);
     analysisToolBar = addToolBar(tr("Analysis"));
     analysisToolBar->setObjectName("analysis");
+    analysisToolBar->setMovable(false);
+    analysisToolBar->setIconSize(QSize(20, 20));
+    analysisToolBar->setToolButtonStyle(Qt::ToolButtonIconOnly);
     analysisToolBar->addAction(entropyAct);
     analysisToolBar->addAction(binaryAct);
     analysisToolBar->addAction(diffAct);
@@ -375,30 +386,104 @@ void HexWalkMain::createToolBars()
     analysisToolBar->addAction(disasmAct);
     analysisToolBar->addSeparator();
     gotoLbl = new QLabel();
-    gotoLbl->setText("Go To: ");
+    gotoLbl->setText("Goto(dec)");
     gotoLbl->setFixedHeight(25);
     analysisToolBar->addWidget(gotoLbl);
 
     gotoText = new QLineEdit();
     gotoText->setFixedHeight(25);
-    gotoText->setFixedWidth(80);
+    gotoText->setFixedWidth(96);
     gotoText->setText(tr("0"));
+    gotoText->setPlaceholderText(tr("decimal"));
     connect(gotoText,SIGNAL(returnPressed()),SLOT(gotoAddress()));
     analysisToolBar->addWidget(gotoText);
 
     analysisToolBar->addSeparator();
     widthLbl = new QLabel();
-    widthLbl->setText("Width: ");
+    widthLbl->setText("Width");
     widthLbl->setFixedHeight(25);
     analysisToolBar->addWidget(widthLbl);
     widthText = new QLineEdit();
     widthText->setFixedHeight(25);
-    widthText->setFixedWidth(40);
+    widthText->setFixedWidth(64);
     widthText->setText(tr("16"));
+    widthText->setPlaceholderText(tr("bytes"));
     connect(widthText,SIGNAL(returnPressed()),SLOT(setWidth()));
     analysisToolBar->addWidget(widthText);
     //infoToolBar = addToolBar(tr("Info"));
 
+}
+
+void HexWalkMain::applyInterfacePolish()
+{
+    setMinimumSize(760, 600);
+    auto refreshStyle = [](QWidget *widget) {
+        widget->style()->unpolish(widget);
+        widget->style()->polish(widget);
+        widget->update();
+    };
+
+    QList<QLabel*> valueLabels = {
+        ui->selTextedit, ui->asciiTextEdit, ui->decTextedit, ui->intleTextedit,
+        ui->binTextedit, ui->floatTextedit_le, ui->floatTextedit_be, ui->hexTextedit
+    };
+    for (QLabel *label : valueLabels)
+    {
+        label->setProperty("valueLabel", true);
+        label->setFrameShape(QFrame::NoFrame);
+        label->setMargin(4);
+        label->setMinimumHeight(28);
+        refreshStyle(label);
+    }
+
+    QList<QLabel*> fieldLabels = {
+        ui->sellbl, ui->asciilbl, ui->declbl, ui->intlelbl, ui->binlbl,
+        ui->floatlbl_le, ui->floatlbl_be, ui->hexlbl,
+        lbAddressName, lbSizeName, lbOverwriteModeName, gotoLbl, widthLbl
+    };
+    for (QLabel *label : fieldLabels)
+    {
+        label->setProperty("fieldLabel", true);
+        refreshStyle(label);
+    }
+
+    QList<QLabel*> statusLabels = {lbAddress, lbSize, lbOverwriteMode};
+    for (QLabel *label : statusLabels)
+    {
+        label->setProperty("statusValue", true);
+        label->setFrameShape(QFrame::NoFrame);
+        label->setAlignment(Qt::AlignCenter);
+        label->setMinimumHeight(24);
+        refreshStyle(label);
+    }
+
+    QFont dataFont("Monospace", 10);
+    for (QLabel *label : valueLabels)
+        label->setFont(dataFont);
+
+    ui->groupBox->setTitle(tr("Selection"));
+    statusBar()->setSizeGripEnabled(false);
+}
+
+void HexWalkMain::migrateDefaultTheme()
+{
+    const bool oldDefaultColors =
+        appSettings->value("HighlightingColor").value<QColor>() == QColor("#540c00") &&
+        appSettings->value("AddressAreaColor").value<QColor>() == QColor("#545454") &&
+        appSettings->value("HexFontColor").value<QColor>() == QColor("#00ff5e");
+
+    if (!oldDefaultColors)
+        return;
+
+    appSettings->setValue("HighlightingColor", QColor("#fff1b8"));
+    appSettings->setValue("AddressAreaColor", QColor("#edf2f7"));
+    appSettings->setValue("SelectionColor", QColor("#2f6f9f"));
+    appSettings->setValue("AddressFontColor", QColor("#5b6876"));
+    appSettings->setValue("AsciiAreaColor", QColor("#f8fafc"));
+    appSettings->setValue("AsciiFontColor", QColor("#1d2733"));
+    appSettings->setValue("HexFontColor", QColor("#17202a"));
+    appSettings->setValue("WidgetFont", QFont("Monospace", 11));
+    appSettings->sync();
 }
 
 void HexWalkMain::setFileActionsEnabled(bool enabled)
@@ -742,7 +827,15 @@ void HexWalkMain::updateInfo()
 }
 void HexWalkMain::setAddress(qint64 address)
 {
-    lbAddress->setText(QString("%1(%2)").arg(address, 1, 16).arg(address,1,10));
+    int bytesPerLine = hexEdit->bytesPerLine();
+    qint64 row = bytesPerLine > 0 ? address / bytesPerLine : 0;
+    qint64 column = bytesPerLine > 0 ? address % bytesPerLine : 0;
+    lbAddress->setText(QString("0x%1 (%2)  Row: %3  Col: 0x%4 (%5)")
+                       .arg(address, 1, 16)
+                       .arg(address, 1, 10)
+                       .arg(row, 1, 10)
+                       .arg(column, 1, 16)
+                       .arg(column, 1, 10));
     if(hexEdit->getSize() > 0)
     {
         if(address < hexEdit->getSize())
@@ -855,7 +948,7 @@ void HexWalkMain::showConverterWidget()
 
 void HexWalkMain::gotoAddress()
 {
-    qint64 destPos = 2*(gotoText->text().toLongLong(NULL,16));
+    qint64 destPos = 2*(gotoText->text().toLongLong(NULL,10));
     hexEdit->setCursorPosition(destPos);
     hexEdit->ensureVisible();
 }
@@ -929,21 +1022,17 @@ void HexWalkMain::readSettings()
         appSettings->setValue("Highlighting",true);
         appSettings->setValue("OverwriteMode",true);
         appSettings->setValue("ReadOnly",false);
-        appSettings->setValue("HighlightingColor",QColor("#540c00"));
-        appSettings->setValue("AddressAreaColor",QColor("#545454"));
-        appSettings->setValue("SelectionColor",QColor("#0998c7"));
-        appSettings->setValue("WidgetFont",QFont("Courier",12));
-        appSettings->setValue("AddressFontColor",QColor("#f0f0f0"));
-        appSettings->setValue("AsciiAreaColor",QColor("#424242"));
-        appSettings->setValue("AsciiFontColor",QColor("#00ff5e"));
-        appSettings->setValue("HexFontColor",QColor("#00ff5e"));
+        appSettings->setValue("HighlightingColor",QColor("#fff1b8"));
+        appSettings->setValue("AddressAreaColor",QColor("#edf2f7"));
+        appSettings->setValue("SelectionColor",QColor("#2f6f9f"));
+        appSettings->setValue("WidgetFont",QFont("Monospace",11));
+        appSettings->setValue("AddressFontColor",QColor("#5b6876"));
+        appSettings->setValue("AsciiAreaColor",QColor("#f8fafc"));
+        appSettings->setValue("AsciiFontColor",QColor("#1d2733"));
+        appSettings->setValue("HexFontColor",QColor("#17202a"));
         appSettings->setValue("AddressAreaWidth",6);
         appSettings->setValue("BytesPerLine",16);
         appSettings->setValue("HexCaps",true);
-
-
-
-        appSettings->setValue("HexFontColor",QColor("#00ff5e"));
 
 
         appSettings->setValue("pos", pos());
@@ -976,6 +1065,7 @@ void HexWalkMain::readSettings()
         move(pos);
         resize(size);
     }
+    migrateDefaultTheme();
     hexEdit->setAddressArea(appSettings->value("AddressArea").toBool());
     hexEdit->setAsciiArea(appSettings->value("AsciiArea").toBool());
     hexEdit->setHighlighting(appSettings->value("Highlighting").toBool());

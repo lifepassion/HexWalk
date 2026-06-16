@@ -157,6 +157,8 @@ private:
     void createMenus();
     void createStatusBar();
     void createToolBars();
+    void applyInterfacePolish();
+    void migrateDefaultTheme();
     void setCurrentFile(const QString &fileName);
     void readSettings();
     void writeSettings();
