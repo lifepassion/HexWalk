@@ -28,6 +28,8 @@
 #include <QFontDialog>
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QGridLayout>
+#include <QSizePolicy>
 #include <QStyle>
 
 #include "hexwalkmain.h"
@@ -432,7 +434,8 @@ void HexWalkMain::applyInterfacePolish()
         label->setProperty("valueLabel", true);
         label->setFrameShape(QFrame::NoFrame);
         label->setMargin(4);
-        label->setMinimumHeight(28);
+        label->setMinimumHeight(32);
+        label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         refreshStyle(label);
     }
 
@@ -462,6 +465,34 @@ void HexWalkMain::applyInterfacePolish()
         label->setFont(dataFont);
 
     ui->groupBox->setTitle(tr("Selection"));
+    ui->groupBox->setMinimumHeight(190);
+    QGridLayout *selectionLayout = new QGridLayout(ui->groupBox);
+    selectionLayout->setContentsMargins(12, 18, 12, 10);
+    selectionLayout->setHorizontalSpacing(8);
+    selectionLayout->setVerticalSpacing(6);
+    selectionLayout->addWidget(ui->sellbl, 0, 0);
+    selectionLayout->addWidget(ui->selTextedit, 0, 1);
+    selectionLayout->addWidget(ui->asciilbl, 0, 2);
+    selectionLayout->addWidget(ui->asciiTextEdit, 0, 3);
+    selectionLayout->addWidget(ui->floatlbl_le, 0, 4);
+    selectionLayout->addWidget(ui->floatTextedit_le, 0, 5);
+    selectionLayout->addWidget(ui->signedcb, 1, 0, 1, 2);
+    selectionLayout->addWidget(ui->declbl, 1, 2);
+    selectionLayout->addWidget(ui->decTextedit, 1, 3);
+    selectionLayout->addWidget(ui->floatlbl_be, 1, 4);
+    selectionLayout->addWidget(ui->floatTextedit_be, 1, 5);
+    selectionLayout->addWidget(ui->intlelbl, 2, 2);
+    selectionLayout->addWidget(ui->intleTextedit, 2, 3);
+    selectionLayout->addWidget(ui->hexlbl, 2, 4);
+    selectionLayout->addWidget(ui->hexTextedit, 2, 5);
+    selectionLayout->addWidget(ui->binlbl, 3, 2);
+    selectionLayout->addWidget(ui->binTextedit, 3, 3, 1, 3);
+    selectionLayout->setColumnMinimumWidth(0, 112);
+    selectionLayout->setColumnMinimumWidth(1, 56);
+    selectionLayout->setColumnMinimumWidth(2, 56);
+    selectionLayout->setColumnMinimumWidth(4, 64);
+    selectionLayout->setColumnStretch(3, 2);
+    selectionLayout->setColumnStretch(5, 2);
     statusBar()->setSizeGripEnabled(false);
 }
 
