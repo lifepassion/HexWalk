@@ -55,15 +55,7 @@ jobs:
         run: |
           set -eux
           package="HexWalk-linux-${{ matrix.arch }}"
-          mkdir -p "dist/$package"
-          cp bin/hexwalk "dist/$package/"
-          cp LICENSE README.md "dist/$package/"
-          tar -C dist -czf "dist/${package}.tar.gz" "$package"
-
-      - name: Package AppImage
-        if: matrix.appimage
-        run: |
-          set -eux
+          rm -rf AppDir "dist/$package"
           mkdir -p AppDir/usr/bin
           mkdir -p AppDir/usr/share/applications
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
@@ -121,7 +113,16 @@ jobs:
               copy_deps "$lib"
             done
           done
+          cp LICENSE README.md AppDir/
 
+          mkdir -p dist
+          cp -a AppDir "dist/$package"
+          tar -C dist -czf "dist/${package}.tar.gz" "$package"
+
+      - name: Package AppImage
+        if: matrix.appimage
+        run: |
+          set -eux
           wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
           chmod +x appimagetool
           mkdir -p dist
