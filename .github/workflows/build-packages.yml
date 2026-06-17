@@ -67,8 +67,12 @@ jobs:
           mkdir -p AppDir/usr/bin
           mkdir -p AppDir/usr/share/applications
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+          mkdir -p AppDir/usr/lib
+          mkdir -p AppDir/usr/plugins/platforms
+          mkdir -p AppDir/usr/plugins/imageformats
           cp bin/hexwalk AppDir/usr/bin/hexwalk
           cp hexwalk/images/hexwalk256.png AppDir/usr/share/icons/hicolor/256x256/apps/hexwalk.png
+          cp hexwalk/images/hexwalk256.png AppDir/hexwalk.png
           cat > AppDir/usr/share/applications/hexwalk.desktop <<'EOF'
           [Desktop Entry]
           Type=Application
@@ -79,11 +83,49 @@ jobs:
           Categories=Development;Utility;
           Terminal=false
           EOF
-          wget -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage -O linuxdeployqt
-          chmod +x linuxdeployqt
-          ./linuxdeployqt AppDir/usr/share/applications/hexwalk.desktop -unsupported-allow-new-glibc -appimage
+          cp AppDir/usr/share/applications/hexwalk.desktop AppDir/hexwalk.desktop
+          cat > AppDir/AppRun <<'EOF'
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "$0")")"
+          export LD_LIBRARY_PATH="$HERE/usr/lib:$LD_LIBRARY_PATH"
+          export QT_PLUGIN_PATH="$HERE/usr/plugins"
+          export QT_QPA_PLATFORM_PLUGIN_PATH="$HERE/usr/plugins/platforms"
+          exec "$HERE/usr/bin/hexwalk" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+
+          qt_plugins="$(qmake -query QT_INSTALL_PLUGINS)"
+          cp "$qt_plugins/platforms/libqxcb.so" AppDir/usr/plugins/platforms/
+          cp "$qt_plugins/imageformats"/libq*.so AppDir/usr/plugins/imageformats/
+
+          copy_deps() {
+            local binary="$1"
+            ldd "$binary" \
+              | awk '/=> \// { print $3 } /^\// { print $1 }' \
+              | while read -r lib; do
+                  case "$lib" in
+                    *linux-vdso*|*/ld-linux-*.so.*|*/libc.so.*|*/libpthread.so.*|*/libdl.so.*|*/libm.so.*|*/librt.so.*|*/libresolv.so.*)
+                      continue
+                      ;;
+                  esac
+                  cp -n "$lib" AppDir/usr/lib/ || true
+                done
+          }
+
+          copy_deps AppDir/usr/bin/hexwalk
+          find AppDir/usr/plugins -type f -name '*.so' -print0 | while IFS= read -r -d '' plugin; do
+            copy_deps "$plugin"
+          done
+          for pass in 1 2 3; do
+            find AppDir/usr/lib -type f -name '*.so*' -print0 | while IFS= read -r -d '' lib; do
+              copy_deps "$lib"
+            done
+          done
+
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+          chmod +x appimagetool
           mkdir -p dist
-          mv HexWalk*.AppImage "dist/HexWalk-linux-x86_64.AppImage"
+          APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 ./appimagetool AppDir "dist/HexWalk-linux-x86_64.AppImage"
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
@@ -107,14 +149,17 @@ jobs:
       - name: Install Qt 5.15.2 MinGW 32-bit
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
           python -m pip install --upgrade pip
           python -m pip install aqtinstall
-          python -m aqt install-qt windows desktop 5.15.2 win32_mingw81 -O C:\Qt
+          python -m aqt install-qt windows desktop 5.15.2 win32_mingw81 -m qtcharts -O C:\Qt
           python -m aqt install-tool windows desktop tools_mingw qt.tools.win32_mingw810 -O C:\Qt
 
       - name: Build Capstone
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
+          $jobs = [Environment]::ProcessorCount
           $env:Path = "C:\Qt\Tools\mingw810_32\bin;C:\Qt\5.15.2\mingw81_32\bin;$env:Path"
           cmake -S capstone -B capstone/build -G "MinGW Makefiles" `
             -DCMAKE_BUILD_TYPE=Release `
@@ -123,7 +168,9 @@ jobs:
             -DCAPSTONE_BUILD_TESTS=OFF `
             -DCAPSTONE_BUILD_CSTOOL=OFF `
             -DCAPSTONE_BUILD_CSTEST=OFF
-          cmake --build capstone/build --parallel $env:NUMBER_OF_PROCESSORS
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build capstone/build --parallel $jobs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (!(Test-Path capstone/build/libcapstone.a)) {
             Get-ChildItem capstone/build -Recurse -Filter "*capstone*.a" | Format-Table FullName
             throw "capstone/build/libcapstone.a was not produced"
@@ -132,6 +179,8 @@ jobs:
       - name: Build HexWalk
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
+          $jobs = [Environment]::ProcessorCount
           $env:Path = "C:\Qt\Tools\mingw810_32\bin;C:\Qt\5.15.2\mingw81_32\bin;$env:Path"
           if (Test-Path build) { Remove-Item build\* -Recurse -Force }
           else { New-Item -ItemType Directory build | Out-Null }
@@ -140,17 +189,21 @@ jobs:
             "QMAKE_CFLAGS+=-D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x06010000" `
             "QMAKE_CXXFLAGS+=-D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x06010000" `
             "QMAKE_LFLAGS+=-Wl,--major-subsystem-version,6,--minor-subsystem-version,1"
-          mingw32-make -j$env:NUMBER_OF_PROCESSORS
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          mingw32-make "-j$jobs"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Pop-Location
 
       - name: Package Windows zip
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
           $env:Path = "C:\Qt\Tools\mingw810_32\bin;C:\Qt\5.15.2\mingw81_32\bin;$env:Path"
           $package = "HexWalk-windows-win7-x86"
           New-Item -ItemType Directory -Force "dist\$package" | Out-Null
           Copy-Item bin\hexwalk.exe "dist\$package\"
           windeployqt --release --compiler-runtime "dist\$package\hexwalk.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Copy-Item LICENSE, README.md "dist\$package\"
           Compress-Archive -Path "dist\$package\*" -DestinationPath "dist\$package.zip" -Force
 
