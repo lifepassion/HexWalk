@@ -170,7 +170,7 @@ void OptionsDialog::on_buttonBox_clicked(QAbstractButton *button)
         ui->cbAsciiArea->setChecked(true);
         ui->cbHighlighting->setChecked(true);
         ui->cbOverwriteMode->setChecked(true);
-        ui->cbReadOnly->setChecked(false);
+        ui->cbReadOnly->setChecked(true);
 
         setColor(ui->lbHighlightingColor, QColor("#fff1b8"));
         setColor(ui->lbAddressAreaColor, QColor("#edf2f7"));

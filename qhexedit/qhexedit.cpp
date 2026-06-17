@@ -403,18 +403,27 @@ bool QHexEdit::write(QIODevice &iODevice, qint64 pos, qint64 count)
 // ********************************************************************** Char handling
 void QHexEdit::insert(qint64 index, char ch)
 {
+    if (_readOnly)
+        return;
+
     _undoStack->insert(index, ch);
     refresh();
 }
 
 void QHexEdit::remove(qint64 index, qint64 len)
 {
+    if (_readOnly)
+        return;
+
     _undoStack->removeAt(index, len);
     refresh();
 }
 
 void QHexEdit::replace(qint64 index, char ch)
 {
+    if (_readOnly)
+        return;
+
     _undoStack->overwrite(index, ch);
     refresh();
 }
@@ -422,12 +431,18 @@ void QHexEdit::replace(qint64 index, char ch)
 // ********************************************************************** ByteArray handling
 void QHexEdit::insert(qint64 pos, const QByteArray &ba)
 {
+    if (_readOnly)
+        return;
+
     _undoStack->insert(pos, ba);
     refresh();
 }
 
 void QHexEdit::replace(qint64 pos, qint64 len, const QByteArray &ba)
 {
+    if (_readOnly)
+        return;
+
     _undoStack->overwrite(pos, len, ba);
     refresh();
 }
@@ -480,6 +495,9 @@ qint64 QHexEdit::lastIndexOf(const QByteArray &ba, qint64 from)
 
 void QHexEdit::redo()
 {
+    if (_readOnly)
+        return;
+
     _undoStack->redo();
     setCursorPosition(_chunks->pos()*2);
     refresh();
@@ -531,6 +549,9 @@ QString QHexEdit::toReadableString()
 
 void QHexEdit::undo()
 {
+    if (_readOnly)
+        return;
+
     _undoStack->undo();
     setCursorPosition(_chunks->pos()*2);
     refresh();
@@ -1351,13 +1372,18 @@ void QHexEdit::showContextMenu(const QPoint &pos)
             QAction *copyAction = contextMenu.addAction("Copy");
             connect(copyAction, &QAction::triggered, this, &QHexEdit::copyText);
 
-            QAction *cutAction = contextMenu.addAction("Cut");
-            connect(cutAction, &QAction::triggered, this, &QHexEdit::cutText);
-
+            if (!_readOnly)
+            {
+                QAction *cutAction = contextMenu.addAction("Cut");
+                connect(cutAction, &QAction::triggered, this, &QHexEdit::cutText);
+            }
 
         }
-        QAction *pasteAction = contextMenu.addAction("Paste");
-        connect(pasteAction, &QAction::triggered, this, &QHexEdit::pasteText);
+        if (!_readOnly)
+        {
+            QAction *pasteAction = contextMenu.addAction("Paste");
+            connect(pasteAction, &QAction::triggered, this, &QHexEdit::pasteText);
+        }
 
         contextMenu.exec(mapToGlobal(pos));
     }
@@ -1388,6 +1414,9 @@ void QHexEdit::copyText(){
     clipboard->setText(ba);
 }
 void QHexEdit::pasteText(){
+    if (_readOnly)
+        return;
+
     QClipboard *clipboard = QApplication::clipboard();
     QByteArray ba = QByteArray().fromHex(clipboard->text().toLatin1());
     if (_overwriteMode)
@@ -1401,6 +1430,9 @@ void QHexEdit::pasteText(){
     resetSelection(getSelectionBegin());
 }
 void QHexEdit::cutText(){
+    if (_readOnly)
+        return;
+
     QByteArray ba = _chunks->data(getSelectionBegin(), getSelectionEnd() - getSelectionBegin()).toHex();
     for (qint64 idx = 32; idx < ba.size(); idx +=33)
         ba.insert(idx, "\n");

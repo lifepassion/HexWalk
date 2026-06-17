@@ -29,11 +29,45 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QGridLayout>
+#include <QPainter>
+#include <QPixmap>
 #include <QSizePolicy>
 #include <QStyle>
 
 #include "hexwalkmain.h"
 #include "ui_hexwalkmain.h"
+
+namespace {
+
+QPixmap lockStatusPixmap(bool locked)
+{
+    const QSize size(18, 18);
+    QPixmap pixmap(size);
+    pixmap.fill(Qt::transparent);
+
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    const QColor color = locked ? QColor("#2f6f9f") : QColor("#7a8795");
+    QPen pen(color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    painter.setPen(pen);
+    painter.setBrush(Qt::NoBrush);
+
+    if (locked)
+        painter.drawArc(QRectF(5, 2.5, 8, 9), 0, 180 * 16);
+    else
+        painter.drawArc(QRectF(8, 2.5, 8, 9), 25 * 16, 155 * 16);
+
+    painter.setBrush(color);
+    painter.setPen(Qt::NoPen);
+    painter.drawRoundedRect(QRectF(3.5, 8, 11, 8), 2, 2);
+    painter.setBrush(QColor("#ffffff"));
+    painter.drawEllipse(QRectF(8, 10, 2, 2));
+    painter.drawRoundedRect(QRectF(8.5, 11.5, 1, 2.5), 0.5, 0.5);
+
+    return pixmap;
+}
+
+}
 
 HexWalkMain::HexWalkMain(QWidget *parent) :
     QMainWindow(parent),
@@ -202,14 +236,15 @@ void HexWalkMain::createStatusBar()
     statusBar()->addPermanentWidget(lbSize);
     connect(hexEdit, SIGNAL(currentSizeChanged(qint64)), this, SLOT(setSize(qint64)));
 
-    // Overwrite Mode Label
+    // Edit lock indicator
     lbOverwriteModeName = new QLabel();
-    lbOverwriteModeName->setText(tr("Mode:"));
+    lbOverwriteModeName->setText(tr("Lock:"));
     statusBar()->addPermanentWidget(lbOverwriteModeName);
     lbOverwriteMode = new QLabel();
     lbOverwriteMode->setFrameShape(QFrame::Panel);
     lbOverwriteMode->setFrameShadow(QFrame::Sunken);
-    lbOverwriteMode->setMinimumWidth(90);
+    lbOverwriteMode->setAlignment(Qt::AlignCenter);
+    lbOverwriteMode->setMinimumWidth(42);
     statusBar()->addPermanentWidget(lbOverwriteMode);
     setOverwriteMode(hexEdit->overwriteMode());
 
@@ -892,10 +927,14 @@ void HexWalkMain::setAddress(qint64 address)
 void HexWalkMain::setOverwriteMode(bool mode)
 {
     appSettings->setValue("OverwriteMode", mode);
-    if (mode)
-        lbOverwriteMode->setText(tr("Overwrite"));
-    else
-        lbOverwriteMode->setText(tr("Insert"));
+    const bool readOnly = hexEdit->isReadOnly();
+    lbOverwriteMode->setPixmap(lockStatusPixmap(readOnly));
+    lbOverwriteMode->setToolTip(readOnly ? tr("Read-only") : tr("Editable"));
+    lbOverwriteModeName->setToolTip(lbOverwriteMode->toolTip());
+    undoAct->setEnabled(!readOnly);
+    redoAct->setEnabled(!readOnly);
+    pasteAct->setEnabled(!readOnly);
+    cutAct->setEnabled(!readOnly);
 }
 
 void HexWalkMain::setSize(qint64 size)
@@ -1052,7 +1091,7 @@ void HexWalkMain::readSettings()
         appSettings->setValue("AsciiArea",true);
         appSettings->setValue("Highlighting",true);
         appSettings->setValue("OverwriteMode",true);
-        appSettings->setValue("ReadOnly",false);
+        appSettings->setValue("ReadOnly",true);
         appSettings->setValue("HighlightingColor",QColor("#fff1b8"));
         appSettings->setValue("AddressAreaColor",QColor("#edf2f7"));
         appSettings->setValue("SelectionColor",QColor("#2f6f9f"));
@@ -1102,6 +1141,7 @@ void HexWalkMain::readSettings()
     hexEdit->setHighlighting(appSettings->value("Highlighting").toBool());
     hexEdit->setOverwriteMode(appSettings->value("OverwriteMode").toBool());
     hexEdit->setReadOnly(appSettings->value("ReadOnly").toBool());
+    setOverwriteMode(hexEdit->overwriteMode());
 
     hexEdit->setHighlightingColor(appSettings->value("HighlightingColor").value<QColor>());
     hexEdit->setAddressAreaColor(appSettings->value("AddressAreaColor").value<QColor>());
