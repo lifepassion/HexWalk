@@ -198,14 +198,50 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $env:Path = "C:\Qt\Tools\mingw810_32\bin;C:\Qt\5.15.2\mingw81_32\bin;$env:Path"
+          $qtRoot = "C:\Qt\5.15.2\mingw81_32"
+          $mingwRoot = "C:\Qt\Tools\mingw810_32"
+          $qtBin = Join-Path $qtRoot "bin"
+          $qtPlugins = Join-Path $qtRoot "plugins"
+          $mingwBin = Join-Path $mingwRoot "bin"
+          $env:Path = "$mingwBin;$qtBin;$env:Path"
           $package = "HexWalk-windows-win7-x86"
-          New-Item -ItemType Directory -Force "dist\$package" | Out-Null
-          Copy-Item bin\hexwalk.exe "dist\$package\"
-          windeployqt --release --compiler-runtime "dist\$package\hexwalk.exe"
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Copy-Item LICENSE, README.md "dist\$package\"
-          Compress-Archive -Path "dist\$package\*" -DestinationPath "dist\$package.zip" -Force
+          $packageDir = "dist\$package"
+          New-Item -ItemType Directory -Force $packageDir | Out-Null
+          Copy-Item bin\hexwalk.exe $packageDir
+
+          Copy-Item (Join-Path $qtBin "Qt5*.dll") $packageDir
+          foreach ($dll in @("libgcc_s_dw2-1.dll", "libgcc_s_sjlj-1.dll", "libgcc_s_seh-1.dll", "libstdc++-6.dll", "libwinpthread-1.dll", "libssp-0.dll")) {
+            $path = Join-Path $mingwBin $dll
+            if (Test-Path $path) {
+              Copy-Item $path $packageDir
+            }
+          }
+          foreach ($dll in @("libEGL.dll", "libGLESv2.dll", "D3Dcompiler_47.dll", "opengl32sw.dll")) {
+            $path = Join-Path $qtBin $dll
+            if (Test-Path $path) {
+              Copy-Item $path $packageDir
+            }
+          }
+
+          New-Item -ItemType Directory -Force "$packageDir\plugins\platforms" | Out-Null
+          New-Item -ItemType Directory -Force "$packageDir\plugins\imageformats" | Out-Null
+          New-Item -ItemType Directory -Force "$packageDir\plugins\styles" | Out-Null
+          $qwindows = Join-Path $qtPlugins "platforms\qwindows.dll"
+          if (!(Test-Path $qwindows)) {
+            Get-ChildItem $qtPlugins -Recurse | Select-Object FullName
+            throw "Qt platform plugin qwindows.dll was not found"
+          }
+          Copy-Item $qwindows "$packageDir\plugins\platforms\"
+          Copy-Item (Join-Path $qtPlugins "imageformats\*.dll") "$packageDir\plugins\imageformats\"
+          $vistaStyle = Join-Path $qtPlugins "styles\qwindowsvistastyle.dll"
+          if (Test-Path $vistaStyle) {
+            Copy-Item $vistaStyle "$packageDir\plugins\styles\"
+          }
+
+          Set-Content -Encoding ASCII "$packageDir\qt.conf" "[Paths]`r`nPlugins = plugins`r`n"
+
+          Copy-Item LICENSE, README.md $packageDir
+          Compress-Archive -Path "$packageDir\*" -DestinationPath "$packageDir.zip" -Force
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
