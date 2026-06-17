@@ -22,9 +22,11 @@ jobs:
           - arch: x86_64
             runner: ubuntu-22.04
             appimage: true
+            appimage_arch: x86_64
           - arch: arm64
             runner: ubuntu-24.04-arm
-            appimage: false
+            appimage: true
+            appimage_arch: aarch64
 
     steps:
       - name: Checkout
@@ -42,7 +44,7 @@ jobs:
             qtbase5-dev \
             qtbase5-dev-tools
           if [ "${{ matrix.appimage }}" = "true" ]; then
-            sudo apt-get install -y desktop-file-utils file libfuse2 patchelf wget
+            sudo apt-get install -y desktop-file-utils file patchelf wget
           fi
 
       - name: Build Capstone
@@ -123,10 +125,10 @@ jobs:
         if: matrix.appimage
         run: |
           set -eux
-          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-${{ matrix.appimage_arch }}.AppImage -O appimagetool
           chmod +x appimagetool
           mkdir -p dist
-          APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 ./appimagetool AppDir "dist/HexWalk-linux-x86_64.AppImage"
+          APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${{ matrix.appimage_arch }} ./appimagetool AppDir "dist/HexWalk-linux-${{ matrix.arch }}.AppImage"
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
@@ -134,7 +136,7 @@ jobs:
           name: HexWalk-linux-${{ matrix.arch }}
           path: |
             dist/HexWalk-linux-${{ matrix.arch }}.tar.gz
-            dist/HexWalk-linux-x86_64.AppImage
+            dist/HexWalk-linux-${{ matrix.arch }}.AppImage
           if-no-files-found: ignore
 
   windows:
