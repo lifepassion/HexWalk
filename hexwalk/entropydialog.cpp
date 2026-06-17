@@ -72,7 +72,7 @@ void EntropyDialog::calculate()
         blockSize = 16384;
     }
     series = new QLineSeries();
-    progrDialog = new QProgressDialog("Entropy calculation in progress...","Cancel",0,100,this);
+    progrDialog = new QProgressDialog(tr("Entropy calculation in progress..."),tr("Cancel"),0,100,this);
     progrDialog->setValue(0);
     progrDialog->show();
 
@@ -102,7 +102,7 @@ void EntropyDialog::calculate()
     chart->axes(Qt::Vertical).back()->setRange(0.0,1.0);
     chart->axes(Qt::Vertical).back()->setLabelsBrush(QBrush(QColor("lightgray")));
     chart->axes(Qt::Horizontal).back()->setLabelsBrush(QBrush(QColor("lightgray")));
-    chart->setTitle("Entropy chart");
+    chart->setTitle(tr("Entropy chart"));
 
     chart->setBackgroundBrush(QBrush(QColor("black")));
     chart->setTitleBrush(QBrush(QColor("lightgray")));
@@ -193,4 +193,3 @@ void EntropyDialog::on_entropyChart_mousePressed(qint64 )
 {
 
 }
-

@@ -115,7 +115,7 @@ QString AdvancedSearchDialog::binToStr(QByteArray bin)
 }
 void AdvancedSearchDialog::findAll()
 {
-    progrDialog = new QProgressDialog("Task in progress...","Cancel",0,100,this);
+    progrDialog = new QProgressDialog(tr("Task in progress..."),tr("Cancel"),0,100,this);
     progrDialog->setValue(0);
     progrDialog->setModal(true);
     progrDialog->show();
@@ -262,11 +262,11 @@ QVariant TableModel::headerData(int section, Qt::Orientation orientation, int ro
 {
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         if (section == 0) {
-            return QString("Cursor");
+            return tr("Cursor");
         } else if (section == 2) {
-            return QString("Content(Hex)");
+            return tr("Content(Hex)");
         }else if (section == 1) {
-            return QString("Content");
+            return tr("Content");
         }
     }
     return QVariant();
@@ -407,4 +407,3 @@ void AdvancedSearchDialog::on_cbRegex_clicked()
         ui->cbCase->setChecked(false);
     }
 }
-

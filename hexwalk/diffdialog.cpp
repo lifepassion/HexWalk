@@ -98,7 +98,7 @@ void DiffDialog::setFiles(QString file1str, QString file2str)
 
 void DiffDialog::on_nextDiffBtn_clicked()
 {
-    progrDialog = new QProgressDialog("Task in progress...","Cancel",0,100,this);
+    progrDialog = new QProgressDialog(tr("Task in progress..."),tr("Cancel"),0,100,this);
     progrDialog->setValue(0);
     progrDialog->setModal(true);
     progrDialog->show();
@@ -167,4 +167,3 @@ void DiffDialog::on_prevDiffBtn_clicked()
         idx++;
     }
 }
-

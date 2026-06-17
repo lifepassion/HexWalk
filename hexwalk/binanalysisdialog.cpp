@@ -88,9 +88,9 @@ QVariant BinTableModel::headerData(int section, Qt::Orientation orientation, int
 {
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         if (section == 0) {
-            return QString("Cursor");
+            return tr("Cursor");
         }else if (section == 1) {
-            return QString("Content");
+            return tr("Content");
         }
     }
     return QVariant();
@@ -216,7 +216,7 @@ void binanalysisdialog::renderAnalysis(int status_code)
         if(status_code == 0)
         {
             QMessageBox::warning(this, tr("HexWalk"),
-                                 "Extraction complete.");
+                                 tr("Extraction complete."));
 
         }
         else
@@ -256,9 +256,9 @@ void binanalysisdialog::analyze(QString filename)
     {
         binwalkProcess->close();
 #ifdef Q_OS_WIN
-        QMessageBox::warning(this, tr("HexWalk"),tr("Could not start binwalk.\r\nError: \r\n%1").arg("Python executable not found"));
+        QMessageBox::warning(this, tr("HexWalk"),tr("Could not start binwalk.\r\nError: \r\n%1").arg(tr("Python executable not found")));
 #else
-        QMessageBox::warning(this, tr("HexWalk"),tr("Could not start binwalk.\r\nError: \r\n%1").arg("Binwalk executable not found"));
+        QMessageBox::warning(this, tr("HexWalk"),tr("Could not start binwalk.\r\nError: \r\n%1").arg(tr("Binwalk executable not found")));
 #endif
         progrDialog->hide();
     }
@@ -294,7 +294,7 @@ void binanalysisdialog::on_extractAllBtn_clicked()
     {
         binwalkProcess->close();
         QMessageBox::warning(this, tr("HexWalk"),
-                             tr("Could not start binwalk.\r\nError: \r\n%1").arg("Python executable not found"));
+                             tr("Could not start binwalk.\r\nError: \r\n%1").arg(tr("Python executable not found")));
         progrDialog->hide();
     }
 #else
@@ -306,4 +306,3 @@ void binanalysisdialog::on_extractAllBtn_clicked()
 #endif
 
 }
-

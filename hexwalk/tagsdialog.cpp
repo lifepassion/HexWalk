@@ -37,12 +37,12 @@ TagsDialog::TagsDialog(QHexEdit * hexedit,QWidget *parent) :
     connect(edittagDialog,SIGNAL(tagReady()),this,SLOT(triggerUpdate()));
     connect(parent,SIGNAL(fileLoaded()),this,SLOT(triggerUpdate()));
     ui->tableWidget->setColumnCount(6);
-    ui->tableWidget->setHorizontalHeaderItem(0,new QTableWidgetItem("Name"));
-    ui->tableWidget->setHorizontalHeaderItem(1,new QTableWidgetItem("Color"));
-    ui->tableWidget->setHorizontalHeaderItem(2,new QTableWidgetItem("Offset"));
-    ui->tableWidget->setHorizontalHeaderItem(3,new QTableWidgetItem("Size"));
-    ui->tableWidget->setHorizontalHeaderItem(4,new QTableWidgetItem("Type"));
-    ui->tableWidget->setHorizontalHeaderItem(5,new QTableWidgetItem("Value"));
+    ui->tableWidget->setHorizontalHeaderItem(0,new QTableWidgetItem(tr("Name")));
+    ui->tableWidget->setHorizontalHeaderItem(1,new QTableWidgetItem(tr("Color")));
+    ui->tableWidget->setHorizontalHeaderItem(2,new QTableWidgetItem(tr("Offset")));
+    ui->tableWidget->setHorizontalHeaderItem(3,new QTableWidgetItem(tr("Size")));
+    ui->tableWidget->setHorizontalHeaderItem(4,new QTableWidgetItem(tr("Type")));
+    ui->tableWidget->setHorizontalHeaderItem(5,new QTableWidgetItem(tr("Value")));
     ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
@@ -146,7 +146,7 @@ void TagsDialog::updateTable()
             ui->tableWidget->setItem(ui->tableWidget->rowCount()-1,5,new QTableWidgetItem(QString("%1").arg(baValue.toHex().toInt(&ok,16))));
             if(!ok)
             {
-                ui->tableWidget->setItem(ui->tableWidget->rowCount()-1,5,new QTableWidgetItem("Error"));
+                ui->tableWidget->setItem(ui->tableWidget->rowCount()-1,5,new QTableWidgetItem(tr("Error")));
             }
         }
         else if(tmpTag.type == BE_t)
@@ -156,7 +156,7 @@ void TagsDialog::updateTable()
             ui->tableWidget->setItem(ui->tableWidget->rowCount()-1,5,new QTableWidgetItem(QString("%1").arg(baValue.toHex().toInt(&ok,16))));
             if(!ok)
             {
-                ui->tableWidget->setItem(ui->tableWidget->rowCount()-1,5,new QTableWidgetItem("Error"));
+                ui->tableWidget->setItem(ui->tableWidget->rowCount()-1,5,new QTableWidgetItem(tr("Error")));
             }
         }
 
@@ -220,7 +220,7 @@ void TagsDialog::analyzePattern()
 
 void TagsDialog::on_loadBtn_clicked()
 {
-    curFileTag = QFileDialog::getOpenFileName(this,"Tag selection","patterns","YML (*.yml)");
+    curFileTag = QFileDialog::getOpenFileName(this,tr("Tag selection"),"patterns","YML (*.yml)");
     if (curFileTag.isEmpty())
         return;
 
@@ -292,4 +292,3 @@ void TagsDialog::on_closeBtn_clicked()
 {
     this->hide();
 }
-

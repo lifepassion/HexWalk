@@ -1369,19 +1369,19 @@ void QHexEdit::showContextMenu(const QPoint &pos)
         {
 
 
-            QAction *copyAction = contextMenu.addAction("Copy");
+            QAction *copyAction = contextMenu.addAction(tr("Copy"));
             connect(copyAction, &QAction::triggered, this, &QHexEdit::copyText);
 
             if (!_readOnly)
             {
-                QAction *cutAction = contextMenu.addAction("Cut");
+                QAction *cutAction = contextMenu.addAction(tr("Cut"));
                 connect(cutAction, &QAction::triggered, this, &QHexEdit::cutText);
             }
 
         }
         if (!_readOnly)
         {
-            QAction *pasteAction = contextMenu.addAction("Paste");
+            QAction *pasteAction = contextMenu.addAction(tr("Paste"));
             connect(pasteAction, &QAction::triggered, this, &QHexEdit::pasteText);
         }
 

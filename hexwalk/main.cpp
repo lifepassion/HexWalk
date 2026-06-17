@@ -103,7 +103,9 @@ int main(int argc, char *argv[])
     // Identify locale and load translation if available
     QString locale = QLocale::system().name();
     QTranslator translator;
-    translator.load(QString("hexwalk_") + locale);
+    if (!translator.load(QString(":/translations/hexwalk_%1.qm").arg(locale))
+            && QLocale::system().language() == QLocale::Chinese)
+        translator.load(":/translations/hexwalk_zh_CN.qm");
     app.installTranslator(&translator);
 
     QCommandLineParser parser;

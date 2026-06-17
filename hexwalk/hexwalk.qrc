@@ -16,5 +16,6 @@
         <file>images/disasm.png</file>
         <file>fonts/Courier.ttf</file>
         <file>fonts/Roboto.ttf</file>
+        <file>translations/hexwalk_zh_CN.qm</file>
     </qresource>
 </RCC>

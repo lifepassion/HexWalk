@@ -34,40 +34,37 @@ void DisasmWidget::capst(void)
     uint32_t mode_int = CS_MODE_64;
     cs_mode mode = CS_MODE_64;
     uint32_t endianness = CS_MODE_LITTLE_ENDIAN;
-    if(ui->comboEndian->currentText().contains("Little"))
-    {
+    if(ui->comboEndian->currentIndex() == 0)
         endianness = CS_MODE_LITTLE_ENDIAN;
-    }
     else
-    {
         endianness = CS_MODE_BIG_ENDIAN;
-    }
-    if(ui->comboBox->currentText().contains("x86/64"))
+
+    if(ui->comboBox->currentIndex() == 0)
     {
         arch = CS_ARCH_X86;
         mode_int = CS_MODE_64;
     }
-    else if(ui->comboBox->currentText().contains("x86/32"))
+    else if(ui->comboBox->currentIndex() == 1)
     {
         arch = CS_ARCH_X86;
         mode_int = CS_MODE_32;
     }
-    else if(ui->comboBox->currentText() == "ARM32")
+    else if(ui->comboBox->currentIndex() == 2)
     {
         arch = CS_ARCH_ARM;
         mode_int = CS_MODE_ARM;
     }
-    else if(ui->comboBox->currentText() == "ARM32/THUMB")
+    else if(ui->comboBox->currentIndex() == 3)
     {
         arch = CS_ARCH_ARM;
         mode_int = CS_MODE_THUMB;
     }
-    else if(ui->comboBox->currentText().contains("ARM64"))
+    else if(ui->comboBox->currentIndex() == 4)
     {
         arch = CS_ARCH_ARM64;
         mode_int = CS_MODE_ARM;
     }
-    else if(ui->comboBox->currentText().contains("MIPS"))
+    else if(ui->comboBox->currentIndex() == 5)
     {
         arch = CS_ARCH_MIPS;
         mode_int = CS_MODE_MIPS32;
@@ -75,7 +72,7 @@ void DisasmWidget::capst(void)
     mode = (cs_mode) (mode_int | endianness);
     if (cs_err ret = cs_open(arch, mode , &handle))
     {
-        message.sprintf("Invalid mode (e.g. x86 can't be Big Endian)");
+        message = tr("Invalid mode (e.g. x86 can't be Big Endian)");
         ui->lstDisasm->addItem(message);
         return;
     }
@@ -93,7 +90,7 @@ void DisasmWidget::capst(void)
     } else
     {
 
-        message.sprintf("ERROR: Failed to disassemble given code!\n");
+        message = tr("ERROR: Failed to disassemble given code!");
         ui->lstDisasm->addItem(message);
     }
     cs_close(&handle);

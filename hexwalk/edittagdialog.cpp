@@ -120,22 +120,22 @@ void EditTagDialog::on_applyButton_clicked()
     switch(error)
     {
     case E_WRONGNAME:
-        error_string = QString("Wrong name passed ");
+        error_string = tr("Wrong name passed");
         break;
     case E_WRONGTYPE:
-        error_string = QString("Wrong type passed ");
+        error_string = tr("Wrong type passed");
         break;
     case E_WRONGREF:
-        error_string = QString("Wrong reference passed" );
+        error_string = tr("Wrong reference passed");
         break;
     case E_WRONGCOLOR:
-        error_string = QString("Wrong color passed");
+        error_string = tr("Wrong color passed");
         break;
     case E_DUPNAME:
-        error_string = QString("Duplicated name");
+        error_string = tr("Duplicated name");
         break;
     default:
-        error_string = QString("Error code %1").arg(error);
+        error_string = tr("Error code %1").arg(error);
     }
 
     QMessageBox::warning(this, tr("HexWalk"),
@@ -160,4 +160,3 @@ void EditTagDialog::on_applyButton_clicked()
 
 
 }
-

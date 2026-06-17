@@ -65,6 +65,9 @@ SOURCES = \
 RESOURCES = \
     hexwalk.qrc
 
+TRANSLATIONS = \
+    translations/hexwalk_zh_CN.ts
+
 FORMS += \
     advancedsearchdialog.ui \
     binanalysisdialog.ui \

@@ -26,8 +26,8 @@ StringsDialog::StringsDialog(QHexEdit *hexEdit,QWidget *parent) :
     ui->setupUi(this);
     _hexEdit = hexEdit;
     ui->tableWidget->setColumnCount(2);
-    ui->tableWidget->setHorizontalHeaderItem(0,new QTableWidgetItem("Address"));
-    ui->tableWidget->setHorizontalHeaderItem(1,new QTableWidgetItem("String"));
+    ui->tableWidget->setHorizontalHeaderItem(0,new QTableWidgetItem(tr("Address")));
+    ui->tableWidget->setHorizontalHeaderItem(1,new QTableWidgetItem(tr("String")));
     ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
@@ -58,7 +58,7 @@ void StringsDialog::searchStrings()
     timer.start();
 
     //qInfo()<<"Starting search...\n";
-    progrDialog = new QProgressDialog("Search in progress...","Cancel",0,100,this);
+    progrDialog = new QProgressDialog(tr("Search in progress..."),tr("Cancel"),0,100,this);
     progrDialog->setValue(0);
     progrDialog->show();
     /*while(ui->tableWidget->rowCount() > 0)
