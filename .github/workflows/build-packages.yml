@@ -42,6 +42,7 @@ jobs:
             git \
             libgl1-mesa-dev \
             libqt5charts5-dev \
+            pax-utils \
             patchelf \
             qtbase5-dev \
             qtbase5-dev-tools \
@@ -93,20 +94,27 @@ jobs:
           chmod +x AppDir/AppRun
 
           qt_plugins="$(qmake -query QT_INSTALL_PLUGINS)"
+          qt_libs="$(qmake -query QT_INSTALL_LIBS)"
           cp "$qt_plugins/platforms/libqxcb.so" AppDir/usr/plugins/platforms/
           cp "$qt_plugins/imageformats"/libq*.so AppDir/usr/plugins/imageformats/
+          cp -L "$qt_libs/libQt5XcbQpa.so.5" AppDir/usr/lib/
 
           copy_deps() {
             local binary="$1"
-            ldd "$binary" \
-              | awk '/=> \// { print $3 } /^\// { print $1 }' \
+            local binary_real
+            binary_real="$(readlink -f "$binary")"
+
+            lddtree -l "$binary" \
               | while read -r lib; do
+                  if [ "$(readlink -f "$lib")" = "$binary_real" ]; then
+                    continue
+                  fi
                   case "$lib" in
                     *linux-vdso*|*/ld-linux-*.so.*|*/libc.so.*|*/libpthread.so.*|*/libdl.so.*|*/libm.so.*|*/librt.so.*|*/libresolv.so.*)
                       continue
                       ;;
                   esac
-                  cp -n "$lib" AppDir/usr/lib/ || true
+                  cp -Ln "$lib" AppDir/usr/lib/ || true
                 done
           }
 
@@ -114,11 +122,8 @@ jobs:
           find AppDir/usr/plugins -type f -name '*.so' -print0 | while IFS= read -r -d '' plugin; do
             copy_deps "$plugin"
           done
-          for pass in 1 2 3; do
-            find AppDir/usr/lib -type f -name '*.so*' -print0 | while IFS= read -r -d '' lib; do
-              copy_deps "$lib"
-            done
-          done
+          copy_deps AppDir/usr/lib/libQt5XcbQpa.so.5
+          test -f AppDir/usr/lib/libQt5XcbQpa.so.5
           cp LICENSE README.md AppDir/
 
       - name: Verify GLIBC compatibility
