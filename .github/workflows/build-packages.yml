@@ -15,37 +15,42 @@ jobs:
   linux:
     name: Linux ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
+    container:
+      image: ubuntu:20.04
+      env:
+        DEBIAN_FRONTEND: noninteractive
     strategy:
       fail-fast: false
       matrix:
         include:
           - arch: x86_64
             runner: ubuntu-22.04
-            appimage: true
             appimage_arch: x86_64
           - arch: arm64
             runner: ubuntu-24.04-arm
-            appimage: true
             appimage_arch: aarch64
 
     steps:
+      - name: Install build environment
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential \
+            ca-certificates \
+            desktop-file-utils \
+            file \
+            git \
+            libgl1-mesa-dev \
+            libqt5charts5-dev \
+            patchelf \
+            qtbase5-dev \
+            qtbase5-dev-tools \
+            wget
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            libgl1-mesa-dev \
-            libqt5charts5-dev \
-            qtbase5-dev \
-            qtbase5-dev-tools
-          if [ "${{ matrix.appimage }}" = "true" ]; then
-            sudo apt-get install -y desktop-file-utils file patchelf wget
-          fi
 
       - name: Build Capstone
         run: make -C capstone -j"$(nproc)"
@@ -53,11 +58,10 @@ jobs:
       - name: Build HexWalk
         run: ./linux_build.sh
 
-      - name: Package Linux archive
+      - name: Prepare AppDir
         run: |
           set -eux
-          package="HexWalk-linux-${{ matrix.arch }}"
-          rm -rf AppDir "dist/$package"
+          rm -rf AppDir
           mkdir -p AppDir/usr/bin
           mkdir -p AppDir/usr/share/applications
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
@@ -117,12 +121,39 @@ jobs:
           done
           cp LICENSE README.md AppDir/
 
-          mkdir -p dist
-          cp -a AppDir "dist/$package"
-          tar -C dist -czf "dist/${package}.tar.gz" "$package"
+      - name: Verify GLIBC compatibility
+        shell: bash
+        run: |
+          set -uo pipefail
+          failed=0
+          maximum=0
+
+          while IFS= read -r -d '' binary; do
+            if ! file "$binary" | grep -q 'ELF'; then
+              continue
+            fi
+
+            while IFS= read -r version; do
+              if dpkg --compare-versions "$version" gt "$maximum"; then
+                maximum="$version"
+              fi
+              if dpkg --compare-versions "$version" gt '2.31'; then
+                echo "::error file=$binary::Requires GLIBC_$version, newer than the supported GLIBC_2.31 baseline"
+                failed=1
+              fi
+            done < <(
+              readelf --version-info "$binary" 2>/dev/null \
+                | grep -oE 'GLIBC_[0-9]+(\.[0-9]+)*' \
+                | cut -d_ -f2 \
+                | sort -Vu \
+                || true
+            )
+          done < <(find AppDir -type f -print0)
+
+          echo "Maximum required GLIBC version: $maximum"
+          exit "$failed"
 
       - name: Package AppImage
-        if: matrix.appimage
         run: |
           set -eux
           wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-${{ matrix.appimage_arch }}.AppImage -O appimagetool
@@ -134,10 +165,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: HexWalk-linux-${{ matrix.arch }}
-          path: |
-            dist/HexWalk-linux-${{ matrix.arch }}.tar.gz
-            dist/HexWalk-linux-${{ matrix.arch }}.AppImage
-          if-no-files-found: ignore
+          path: dist/HexWalk-linux-${{ matrix.arch }}.AppImage
+          if-no-files-found: error
 
   windows:
     name: Windows Win7 x86
