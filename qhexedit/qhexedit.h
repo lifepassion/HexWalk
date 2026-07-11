@@ -154,10 +154,9 @@ class QHEXEDIT_API QHexEdit : public QAbstractScrollArea
     */
     Q_PROPERTY(QColor selectionColor READ selectionColor WRITE setSelectionColor)
 
-    /*! Property readOnly sets (setReadOnly()) or gets (isReadOnly) the mode
-    in which the editor works. In readonly mode the the user can only navigate
-    through the data and select data; modifying is not possible. This
-    property's default is false.
+    /*! Property readOnly reports the permanent viewer mode used by HexWalk.
+    The user can navigate through the data and select data, but modifying it is
+    not possible. Calls to setReadOnly(false) are intentionally ignored.
     */
     Q_PROPERTY(bool readOnly READ isReadOnly WRITE setReadOnly)
 

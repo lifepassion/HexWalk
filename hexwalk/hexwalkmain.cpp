@@ -308,9 +308,9 @@ void HexWalkMain::createActions()
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
-    findAct = new QAction(tr("&Find/Replace"), this);
+    findAct = new QAction(tr("&Find"), this);
     findAct->setShortcuts(QKeySequence::FindPrevious);
-    findAct->setStatusTip(tr("Show the Dialog for finding and replacing"));
+    findAct->setStatusTip(tr("Show the dialog for finding data"));
     connect(findAct, SIGNAL(triggered()), this, SLOT(showSearchDialog()));
 
     overwriteAct = new QAction(tr("&Overwrite/Insert mode"), this);
@@ -935,6 +935,7 @@ void HexWalkMain::setOverwriteMode(bool mode)
     redoAct->setEnabled(!readOnly);
     pasteAct->setEnabled(!readOnly);
     cutAct->setEnabled(!readOnly);
+    overwriteAct->setEnabled(!readOnly);
 }
 
 void HexWalkMain::setSize(qint64 size)
@@ -1018,9 +1019,22 @@ void HexWalkMain::showConverterWidget()
 
 void HexWalkMain::gotoAddress()
 {
-    qint64 destPos = 2*(gotoText->text().toLongLong(NULL,10));
+    bool ok = false;
+    const qint64 address = gotoText->text().toLongLong(&ok, 10);
+    if (!ok || address < 0 || address >= hexEdit->getSize())
+    {
+        statusBar()->showMessage(tr("Invalid address"), 3000);
+        gotoText->selectAll();
+        return;
+    }
+
+    const qint64 destPos = 2 * address;
+    hexEdit->resetSelection(destPos);
+    hexEdit->setSelection(destPos + 2);
     hexEdit->setCursorPosition(destPos);
     hexEdit->ensureVisible();
+    hexEdit->setFocus(Qt::OtherFocusReason);
+    hexEdit->viewport()->update();
 }
 
 void HexWalkMain::setWidth()
@@ -1140,7 +1154,8 @@ void HexWalkMain::readSettings()
     hexEdit->setAsciiArea(appSettings->value("AsciiArea").toBool());
     hexEdit->setHighlighting(appSettings->value("Highlighting").toBool());
     hexEdit->setOverwriteMode(appSettings->value("OverwriteMode").toBool());
-    hexEdit->setReadOnly(appSettings->value("ReadOnly").toBool());
+    appSettings->setValue("ReadOnly", true);
+    hexEdit->setReadOnly(true);
     setOverwriteMode(hexEdit->overwriteMode());
 
     hexEdit->setHighlightingColor(appSettings->value("HighlightingColor").value<QColor>());

@@ -27,6 +27,10 @@ SearchDialog::SearchDialog(QHexEdit *hexEdit, QWidget *parent) :
 {
   ui->setupUi(this);
   _hexEdit = hexEdit;
+  ui->gbReplace->setEnabled(false);
+  ui->pbReplace->setEnabled(false);
+  ui->pbReplaceAll->setEnabled(false);
+  ui->cbPrompt->setEnabled(false);
 }
 
 SearchDialog::~SearchDialog()

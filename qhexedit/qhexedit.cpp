@@ -19,7 +19,7 @@ QHexEdit::QHexEdit(QWidget *parent) : QAbstractScrollArea(parent)
     , _hexCharsInLine(47)
     , _highlighting(true)
     , _overwriteMode(true)
-    , _readOnly(false)
+    , _readOnly(true)
     , _hexCaps(false)
     , _dynamicBytesPerLine(false)
     , _editAreaIsAscii(false)
@@ -54,7 +54,7 @@ QHexEdit::QHexEdit(QWidget *parent) : QAbstractScrollArea(parent)
     setAsciiArea(true);
     setOverwriteMode(true);
     setHighlighting(true);
-    setReadOnly(false);
+    setReadOnly(true);
 
     init();
 
@@ -353,7 +353,9 @@ bool QHexEdit::isReadOnly()
 
 void QHexEdit::setReadOnly(bool readOnly)
 {
-    _readOnly = readOnly;
+    Q_UNUSED(readOnly);
+    _readOnly = true;
+    viewport()->update();
 }
 
 void QHexEdit::setHexCaps(const bool isCaps)
@@ -450,9 +452,12 @@ void QHexEdit::replace(qint64 pos, qint64 len, const QByteArray &ba)
 // ********************************************************************** Utility functions
 void QHexEdit::ensureVisible()
 {
+    const qint64 lastVisiblePosition =
+        (_bPosFirst + qint64(std::max(0, _rowsShown - 1)) * _bytesPerLine) * 2;
+
     if (_cursorPosition < (_bPosFirst * 2))
         verticalScrollBar()->setValue((int)(_cursorPosition / 2 / _bytesPerLine/_scrollMult));
-    if (_cursorPosition > ((_bPosFirst + (qint64)((_rowsShown - 1)*_bytesPerLine) * 2)))
+    if (_cursorPosition > lastVisiblePosition)
         verticalScrollBar()->setValue((int)(((_cursorPosition / 2 / _bytesPerLine) - _rowsShown + 1)/_scrollMult));
     if (_pxCursorX < horizontalScrollBar()->value())
         horizontalScrollBar()->setValue(_pxCursorX);

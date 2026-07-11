@@ -51,7 +51,7 @@ void DiffDialog::setFiles(QString file1str, QString file2str)
     ui->hexEdit1->setAsciiArea(settings.value("AsciiArea").toBool());
     ui->hexEdit1->setHighlighting(settings.value("Highlighting").toBool());
     ui->hexEdit1->setOverwriteMode(settings.value("OverwriteMode").toBool());
-    ui->hexEdit1->setReadOnly(settings.value("ReadOnly").toBool());
+    ui->hexEdit1->setReadOnly(true);
 
     ui->hexEdit1->setHighlightingColor(settings.value("HighlightingColor").value<QColor>());
     ui->hexEdit1->setAddressAreaColor(settings.value("AddressAreaColor").value<QColor>());
@@ -70,7 +70,7 @@ void DiffDialog::setFiles(QString file1str, QString file2str)
     ui->hexEdit2->setAsciiArea(settings.value("AsciiArea").toBool());
     ui->hexEdit2->setHighlighting(settings.value("Highlighting").toBool());
     ui->hexEdit2->setOverwriteMode(settings.value("OverwriteMode").toBool());
-    ui->hexEdit2->setReadOnly(settings.value("ReadOnly").toBool());
+    ui->hexEdit2->setReadOnly(true);
 
     ui->hexEdit2->setHighlightingColor(settings.value("HighlightingColor").value<QColor>());
     ui->hexEdit2->setAddressAreaColor(settings.value("AddressAreaColor").value<QColor>());

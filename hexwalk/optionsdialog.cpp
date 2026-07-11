@@ -29,6 +29,9 @@ OptionsDialog::OptionsDialog(QSettings * appSettings,QWidget *parent) :
 {
     ui->setupUi(this);
     this->appSettings = appSettings;
+    ui->cbReadOnly->setChecked(true);
+    ui->cbReadOnly->setEnabled(false);
+    ui->cbReadOnly->setToolTip(tr("Editing is permanently disabled"));
 
 }
 
@@ -57,7 +60,7 @@ void OptionsDialog::readSettings()
     ui->cbAsciiArea->setChecked(appSettings->value("AsciiArea").toBool());
     ui->cbHighlighting->setChecked(appSettings->value("Highlighting").toBool());
     ui->cbOverwriteMode->setChecked(appSettings->value("OverwriteMode").toBool());
-    ui->cbReadOnly->setChecked(appSettings->value("ReadOnly").toBool());
+    ui->cbReadOnly->setChecked(true);
 
     setColor(ui->lbHighlightingColor, appSettings->value("HighlightingColor").value<QColor>());
     setColor(ui->lbAddressAreaColor, appSettings->value("AddressAreaColor").value<QColor>());
@@ -82,7 +85,7 @@ void OptionsDialog::writeSettings()
     appSettings->setValue("AsciiArea", ui->cbAsciiArea->isChecked());
     appSettings->setValue("Highlighting", ui->cbHighlighting->isChecked());
     appSettings->setValue("OverwriteMode", ui->cbOverwriteMode->isChecked());
-    appSettings->setValue("ReadOnly", ui->cbReadOnly->isChecked());
+    appSettings->setValue("ReadOnly", true);
 
     appSettings->setValue("HighlightingColor", ui->lbHighlightingColor->palette().color(QPalette::Background));
     appSettings->setValue("AddressAreaColor", ui->lbAddressAreaColor->palette().color(QPalette::Background));
