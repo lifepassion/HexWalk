@@ -93,7 +93,8 @@ void on_cbRegex_clicked();
 
 private:
     void setData();
-    QByteArray getContent(int comboIndex, const QString &input);
+    QByteArray getContent(int comboIndex, const QString &input, bool isRegex, QString *errorMessage = nullptr);
+    void updateFindInputHint();
     qint64 replaceOccurrence(qint64 idx, const QByteArray &replaceBa);
     QByteArray _findBa;
     QList<Result_S> resultslist;

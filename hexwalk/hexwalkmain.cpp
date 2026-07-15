@@ -221,7 +221,8 @@ void HexWalkMain::createStatusBar()
     lbAddress = new QLabel();
     lbAddress->setFrameShape(QFrame::Panel);
     lbAddress->setFrameShadow(QFrame::Sunken);
-    lbAddress->setMinimumWidth(260);
+    lbAddress->setMinimumWidth(380);
+    lbAddress->setFont(QFont("Monospace", 9));
     statusBar()->addPermanentWidget(lbAddress);
     connect(hexEdit, SIGNAL(currentAddressChanged(qint64)), this, SLOT(setAddress(qint64)));
 
@@ -421,30 +422,38 @@ void HexWalkMain::createToolBars()
     analysisToolBar->addAction(stringsAct);
     analysisToolBar->addAction(byteMapAct);
     analysisToolBar->addAction(disasmAct);
+
+    QWidget *toolbarSpacer = new QWidget(analysisToolBar);
+    toolbarSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    analysisToolBar->addWidget(toolbarSpacer);
     analysisToolBar->addSeparator();
     gotoLbl = new QLabel();
-    gotoLbl->setText("Goto(dec)");
-    gotoLbl->setFixedHeight(25);
+    gotoLbl->setText(tr("Go to"));
+    gotoLbl->setFixedHeight(28);
+    gotoLbl->setContentsMargins(4, 0, 2, 0);
     analysisToolBar->addWidget(gotoLbl);
 
     gotoText = new QLineEdit();
-    gotoText->setFixedHeight(25);
-    gotoText->setFixedWidth(96);
+    gotoText->setFixedHeight(28);
+    gotoText->setFixedWidth(104);
     gotoText->setText(tr("0"));
-    gotoText->setPlaceholderText(tr("decimal"));
+    gotoText->setPlaceholderText(tr("Decimal address"));
+    gotoText->setToolTip(tr("Enter a decimal byte address and press Enter"));
     connect(gotoText,SIGNAL(returnPressed()),SLOT(gotoAddress()));
     analysisToolBar->addWidget(gotoText);
 
     analysisToolBar->addSeparator();
     widthLbl = new QLabel();
-    widthLbl->setText("Width");
-    widthLbl->setFixedHeight(25);
+    widthLbl->setText(tr("Width"));
+    widthLbl->setFixedHeight(28);
+    widthLbl->setContentsMargins(4, 0, 2, 0);
     analysisToolBar->addWidget(widthLbl);
     widthText = new QLineEdit();
-    widthText->setFixedHeight(25);
+    widthText->setFixedHeight(28);
     widthText->setFixedWidth(64);
     widthText->setText(tr("16"));
-    widthText->setPlaceholderText(tr("bytes"));
+    widthText->setPlaceholderText(tr("Bytes"));
+    widthText->setToolTip(tr("Number of bytes displayed per row"));
     connect(widthText,SIGNAL(returnPressed()),SLOT(setWidth()));
     analysisToolBar->addWidget(widthText);
     //infoToolBar = addToolBar(tr("Info"));
@@ -454,6 +463,8 @@ void HexWalkMain::createToolBars()
 void HexWalkMain::applyInterfacePolish()
 {
     setMinimumSize(760, 600);
+    ui->verticalLayout->setContentsMargins(8, 8, 8, 8);
+    ui->verticalLayout->setSpacing(8);
     auto refreshStyle = [](QWidget *widget) {
         widget->style()->unpolish(widget);
         widget->style()->polish(widget);
@@ -500,7 +511,7 @@ void HexWalkMain::applyInterfacePolish()
         label->setFont(dataFont);
 
     ui->groupBox->setTitle(tr("Selection"));
-    ui->groupBox->setMinimumHeight(190);
+    ui->groupBox->setMinimumHeight(176);
     QGridLayout *selectionLayout = new QGridLayout(ui->groupBox);
     selectionLayout->setContentsMargins(12, 18, 12, 10);
     selectionLayout->setHorizontalSpacing(8);
@@ -896,10 +907,13 @@ void HexWalkMain::setAddress(qint64 address)
     int bytesPerLine = hexEdit->bytesPerLine();
     qint64 row = bytesPerLine > 0 ? address / bytesPerLine : 0;
     qint64 column = bytesPerLine > 0 ? address % bytesPerLine : 0;
-    lbAddress->setText(QString("0x%1 (%2)  Row: %3  Col: 0x%4 (%5)")
+    lbAddress->setText(QString("0x%1 (%2)  %3: 0x%4 (%5)  %6: 0x%7 (%8)")
                        .arg(address, 1, 16)
                        .arg(address, 1, 10)
+                       .arg(tr("Row"))
+                       .arg(row, 1, 16)
                        .arg(row, 1, 10)
+                       .arg(tr("Column"))
                        .arg(column, 1, 16)
                        .arg(column, 1, 10));
     if(hexEdit->getSize() > 0)
@@ -1114,7 +1128,7 @@ void HexWalkMain::readSettings()
         appSettings->setValue("AsciiAreaColor",QColor("#f8fafc"));
         appSettings->setValue("AsciiFontColor",QColor("#1d2733"));
         appSettings->setValue("HexFontColor",QColor("#17202a"));
-        appSettings->setValue("AddressAreaWidth",6);
+        appSettings->setValue("AddressAreaWidth",3);
         appSettings->setValue("BytesPerLine",16);
         appSettings->setValue("HexCaps",true);
 
@@ -1150,6 +1164,12 @@ void HexWalkMain::readSettings()
         resize(size);
     }
     migrateDefaultTheme();
+    if (!appSettings->value("DecimalRulerLayoutV1", false).toBool())
+    {
+        if (appSettings->value("AddressAreaWidth").toInt() == 6)
+            appSettings->setValue("AddressAreaWidth", 3);
+        appSettings->setValue("DecimalRulerLayoutV1", true);
+    }
     hexEdit->setAddressArea(appSettings->value("AddressArea").toBool());
     hexEdit->setAsciiArea(appSettings->value("AsciiArea").toBool());
     hexEdit->setHighlighting(appSettings->value("Highlighting").toBool());

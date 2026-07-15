@@ -396,6 +396,8 @@ private:
     // Private utility functions
     void init();
     void readBuffers();
+    void selectSearchResult(qint64 bytePosition, qint64 byteLength);
+    void setMouseSelection(qint64 cursorPosition);
     QString toReadable(const QByteArray &ba);
 
 private slots:

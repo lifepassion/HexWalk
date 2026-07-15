@@ -24,6 +24,142 @@
 #include "worditemdelegate.h"
 #include <QProgressDialog>
 #include <QMessageBox>
+#include <QLineEdit>
+
+namespace {
+
+bool isHexDigit(QChar value)
+{
+    return (value >= QLatin1Char('0') && value <= QLatin1Char('9')) ||
+           (value >= QLatin1Char('a') && value <= QLatin1Char('f')) ||
+           (value >= QLatin1Char('A') && value <= QLatin1Char('F'));
+}
+
+bool isDecimalDigit(QChar value)
+{
+    return value >= QLatin1Char('0') && value <= QLatin1Char('9');
+}
+
+bool appendRegexEscape(const QString &input, int *position, QByteArray *pattern)
+{
+    const int escapeStart = *position;
+    if (escapeStart + 1 >= input.length())
+        return false;
+
+    pattern->append('\\');
+    const QChar escapeType = input.at(escapeStart + 1);
+    pattern->append(escapeType.toLatin1());
+    *position += 2;
+
+    int escapedDigits = 0;
+    if (escapeType == QLatin1Char('x'))
+        escapedDigits = 2;
+    else if (escapeType == QLatin1Char('u'))
+        escapedDigits = 4;
+
+    for (int i = 0; i < escapedDigits; ++i)
+    {
+        if (*position >= input.length() || !isHexDigit(input.at(*position)))
+            return false;
+        pattern->append(input.at(*position).toLatin1());
+        ++(*position);
+    }
+
+    return true;
+}
+
+bool appendQuantifier(const QString &input, int *position, QByteArray *pattern)
+{
+    const int closingBrace = input.indexOf(QLatin1Char('}'), *position + 1);
+    if (closingBrace < 0)
+        return false;
+
+    const QString contents = input.mid(*position + 1, closingBrace - *position - 1);
+    const int comma = contents.indexOf(QLatin1Char(','));
+    if (contents.isEmpty() || contents.count(QLatin1Char(',')) > 1)
+        return false;
+
+    const QString minimum = comma < 0 ? contents : contents.left(comma);
+    const QString maximum = comma < 0 ? QString() : contents.mid(comma + 1);
+    if (minimum.isEmpty())
+        return false;
+
+    for (const QChar value : minimum)
+    {
+        if (!isDecimalDigit(value))
+            return false;
+    }
+    for (const QChar value : maximum)
+    {
+        if (!isDecimalDigit(value))
+            return false;
+    }
+
+    pattern->append(input.mid(*position, closingBrace - *position + 1).toLatin1());
+    *position = closingBrace + 1;
+    return true;
+}
+
+QByteArray hexRegexPattern(const QString &input, QString *errorMessage)
+{
+    QByteArray pattern;
+    int position = 0;
+
+    while (position < input.length())
+    {
+        const QChar value = input.at(position);
+
+        if (value.isSpace())
+        {
+            ++position;
+            continue;
+        }
+
+        if (value == QLatin1Char('\\'))
+        {
+            if (!appendRegexEscape(input, &position, &pattern))
+            {
+                if (errorMessage)
+                    *errorMessage = AdvancedSearchDialog::tr("Invalid or incomplete regular expression escape.");
+                return QByteArray();
+            }
+            continue;
+        }
+
+        if (value == QLatin1Char('{') && appendQuantifier(input, &position, &pattern))
+            continue;
+
+        if (isHexDigit(value))
+        {
+            if (position + 1 >= input.length() || !isHexDigit(input.at(position + 1)))
+            {
+                if (errorMessage)
+                    *errorMessage = AdvancedSearchDialog::tr("Hex values must contain exactly two digits per byte.");
+                return QByteArray();
+            }
+
+            pattern.append("\\x");
+            pattern.append(value.toLatin1());
+            pattern.append(input.at(position + 1).toLatin1());
+            position += 2;
+            continue;
+        }
+
+        if (value.unicode() > 0x7f)
+        {
+            if (errorMessage)
+                *errorMessage = AdvancedSearchDialog::tr("Hex regular expressions only support ASCII operators and hexadecimal bytes.");
+            return QByteArray();
+        }
+
+        pattern.append(value.toLatin1());
+        ++position;
+    }
+
+    return pattern;
+}
+
+}
 
 AdvancedSearchDialog::AdvancedSearchDialog(QHexEdit *hexEdit, QWidget *parent) :
     QDialog(parent),
@@ -31,6 +167,7 @@ AdvancedSearchDialog::AdvancedSearchDialog(QHexEdit *hexEdit, QWidget *parent) :
 {
   ui->setupUi(this);
   _hexEdit = hexEdit;
+  updateFindInputHint();
   //model = new TableModel(this);
 
 
@@ -44,8 +181,16 @@ AdvancedSearchDialog::~AdvancedSearchDialog()
 qint64 AdvancedSearchDialog::findNext()
 {
     qint64 from = _hexEdit->cursorPosition() / 2;
-    _findBa = getContent(ui->cbFindFormat->currentIndex(), ui->cbFind->currentText());
+    QString errorMessage;
+    _findBa = getContent(ui->cbFindFormat->currentIndex(), ui->cbFind->currentText(),
+                         ui->cbRegex->isChecked(), &errorMessage);
     qint64 idx = -1;
+
+    if (!errorMessage.isEmpty())
+    {
+        QMessageBox::warning(this, tr("HexWalk"), errorMessage);
+        return idx;
+    }
 
     if (_findBa.length() > 0)
     {
@@ -68,13 +213,15 @@ void AdvancedSearchDialog::on_pbFind_clicked()
 
 }
 
-QByteArray AdvancedSearchDialog::getContent(int comboIndex, const QString &input)
+QByteArray AdvancedSearchDialog::getContent(int comboIndex, const QString &input, bool isRegex,
+                                            QString *errorMessage)
 {
     QByteArray findBa;
     switch (comboIndex)
     {
         case 2:     // hex
-            findBa = QByteArray::fromHex(input.toLatin1());
+            findBa = isRegex ? hexRegexPattern(input, errorMessage)
+                             : QByteArray::fromHex(input.toLatin1());
             break;
         case 0:     // text
             findBa = input.toUtf8();
@@ -344,18 +491,22 @@ void AdvancedSearchDialog::on_cbInvertMatch_clicked()
 
 void AdvancedSearchDialog::on_cbFindFormat_currentIndexChanged(int index)
 {
-    if(!ui->cbFindFormat->currentText().compare("UTF-8"))
+    const bool supportsRegex = index != 1;
+    ui->cbRegex->setEnabled(supportsRegex);
+
+    if(index == 0)
     {
-        ui->cbRegex->setEnabled(true);
         ui->cbCase->setEnabled(true);
     }
     else
     {
-        ui->cbRegex->setChecked(false);
         ui->cbCase->setChecked(false);
-        ui->cbRegex->setEnabled(false);
         ui->cbCase->setEnabled(false);
+        if (!supportsRegex)
+            ui->cbRegex->setChecked(false);
     }
+
+    updateFindInputHint();
 }
 
 
@@ -374,15 +525,17 @@ void AdvancedSearchDialog::on_cbBackwards_clicked()
     }
     else
     {
+        const int format = ui->cbFindFormat->currentIndex();
         ui->cbRegex->setChecked(false);
-        ui->cbRegex->setEnabled(true);
+        ui->cbRegex->setEnabled(format != 1);
         ui->cbCase->setChecked(false);
-        ui->cbCase->setEnabled(true);
+        ui->cbCase->setEnabled(format == 0);
         ui->cbInvertMatch->setChecked(false);
         ui->cbInvertMatch->setEnabled(true);
         ui->cbBegin->setChecked(false);
         ui->cbBegin->setEnabled(true);
     }
+    updateFindInputHint();
 }
 
 
@@ -405,5 +558,24 @@ void AdvancedSearchDialog::on_cbRegex_clicked()
     else
     {
         ui->cbCase->setChecked(false);
+    }
+    updateFindInputHint();
+}
+
+void AdvancedSearchDialog::updateFindInputHint()
+{
+    const bool isHexRegex = ui->cbFindFormat->currentIndex() == 2 && ui->cbRegex->isChecked();
+    if (isHexRegex)
+    {
+        const QString hint = tr("Hex regex: use HH for a literal byte and . for any byte. Example: 1A.FC");
+        ui->cbFind->setToolTip(hint);
+        if (ui->cbFind->lineEdit())
+            ui->cbFind->lineEdit()->setPlaceholderText(tr("Example: 1A.FC"));
+    }
+    else
+    {
+        ui->cbFind->setToolTip(QString());
+        if (ui->cbFind->lineEdit())
+            ui->cbFind->lineEdit()->setPlaceholderText(QString());
     }
 }
