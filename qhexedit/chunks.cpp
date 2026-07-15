@@ -1,5 +1,6 @@
 #include "chunks.h"
 #include <limits.h>
+#include <cstring>
 
 #define NORMAL 0
 #define HIGHLIGHTED 1
@@ -173,59 +174,74 @@ qint64 Chunks::indexOf(const QByteArray &ba, qint64 from,bool isRegex,bool isCas
     QByteArray buffer;
     matchSize = 0;
 
+    std::regex regexPattern;
+    if (isRegex)
+    {
+        try
+        {
+            std::regex_constants::syntax_option_type flags = std::regex_constants::ECMAScript;
+            if (isCaseInsensitive)
+                flags |= std::regex_constants::icase;
+            regexPattern = std::regex(ba.toStdString(), flags);
+        }
+        catch (const std::regex_error &)
+        {
+            return -1;
+        }
+    }
+
     for (qint64 pos=from; (pos < _size) && (result < 0); pos += BUFFER_SIZE)
     {
         buffer = data(pos, BUFFER_SIZE + ba.size() - 1);
         int findPos = -1;
 
-        if (isRegex) {
-            try {
-                std::string regex = ba.toStdString();
-                std::string buf = buffer.toStdString();
-                int icase = 0;
-                if(isCaseInsensitive)
+        if (isRegex)
+        {
+            const std::string buf = buffer.toStdString();
+            std::smatch match;
+            if (invertMatch)
+            {
+                for (size_t offset = 0; offset < buf.size(); ++offset)
                 {
-                    icase = std::regex_constants::icase;
+                    if (!std::regex_search(buf.cbegin() + offset, buf.cend(), match,
+                                           regexPattern, std::regex_constants::match_continuous))
+                    {
+                        findPos = int(offset);
+                        matchSize = 1;
+                        break;
+                    }
                 }
-
-                    std::regex re(regex,(std::regex_constants::syntax_option_type)icase);
-
-                    std::smatch match;
-                    if (std::regex_search(buf, match, re)) {
+            }
+            else if (std::regex_search(buf, match, regexPattern))
+            {
                         findPos = match.position(0);
                         matchSize = match.str(0).size();
-                }
-            } catch (std::regex_error& e) {
-               // std::cerr << "Regex syntax error:" << std::endl << e.what() << std::endl;
             }
-        } else {
+        }
+        else if (invertMatch)
+        {
+            const int patternSize = ba.size();
+            for (int offset = 0; offset < buffer.size(); ++offset)
+            {
+                const bool completePattern = patternSize > 0 && offset + patternSize <= buffer.size();
+                const bool matches = completePattern &&
+                    std::memcmp(buffer.constData() + offset, ba.constData(), size_t(patternSize)) == 0;
+                if (!matches)
+                {
+                    findPos = offset;
+                    matchSize = 1;
+                    break;
+                }
+            }
+        }
+        else
+        {
             findPos = buffer.indexOf(ba);
             matchSize = ba.size();
         }
 
-        // If invertMatch is true, we want to find the first position that does not match.
-        if (invertMatch) {
-            if (findPos < 0) {
-                // If we found a non-match at the beginning, set the result and break.
-                result = pos;
-            }
-            else if (findPos == 0) {
-                // If we found a match at the beginning, continue searching for non-match byte
-                // by byte.
-                pos += 1;
-                pos -= BUFFER_SIZE;
-            } else {
-                // If we found a match after some bytes, so before that number of bytes
-                // was a non-match.
-                result = pos;
-                matchSize = findPos;
-            }
-        } else {
-            // Normal matching logic.
-            if (findPos >= 0) {
-                result = pos + (qint64)findPos;
-            }
-        }
+        if (findPos >= 0)
+            result = pos + qint64(findPos);
 
     }
     return result;

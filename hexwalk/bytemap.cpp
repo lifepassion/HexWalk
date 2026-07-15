@@ -93,13 +93,18 @@ void ByteMap::paintEvent(QPaintEvent *event)
     int hvalue = horizontalScrollBar()->value();
 
     qint64 _bPosFirst = (qint64)value * _bytesPerLine;
+    const qint64 fileSize = _hexedit->getSize();
+    const qint64 selectionBegin = _hexedit->getSelectionBegin();
+    const qint64 selectionEnd = _hexedit->getSelectionEnd();
+    const QByteArray visibleData = _hexedit->dataAt(
+        _bPosFirst, qint64(_rowsShown) * _bytesPerLine);
     for(int i=0;i<_rowsShown;i++)
     {
-
-        QByteArray rowdata  = _hexedit->dataAt(hvalue + _bPosFirst+i*_bytesPerLine,_bytesPerLine-hvalue);
+        const int rowOffset = i * _bytesPerLine + hvalue;
+        const QByteArray rowdata = visibleData.mid(rowOffset, _bytesPerLine - hvalue);
         for(int k=0;k<rowdata.size();k++)
         {
-            if((hvalue + _bPosFirst + i*_bytesPerLine + k) > _hexedit->getSize() )
+            if((hvalue + _bPosFirst + i*_bytesPerLine + k) >= fileSize)
             {
                 break;
             }
@@ -113,10 +118,10 @@ void ByteMap::paintEvent(QPaintEvent *event)
                 pixCol = QColor(pix,pix,pix);
             }
             painter.fillRect(QRect(k*_pxHeight, i*_pxHeight, _pxHeight, _pxHeight), pixCol);
-            if(_hexedit->getSelectionEnd() - _hexedit->getSelectionBegin() > 0)
+            if(selectionEnd > selectionBegin)
             {
                 qint64 tpos = hvalue + _bPosFirst + i*_bytesPerLine + k;
-                if(tpos >= _hexedit->getSelectionBegin() && tpos < _hexedit->getSelectionEnd())
+                if(tpos >= selectionBegin && tpos < selectionEnd)
                 {
                     painter.fillRect(QRect(k*_pxHeight, i*_pxHeight, _pxHeight, _pxHeight), QColor(100,100,240,180));
                 }

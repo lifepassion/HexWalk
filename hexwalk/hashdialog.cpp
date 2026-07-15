@@ -22,6 +22,7 @@
 #include <QFile>
 #include <QCryptographicHash>
 #include <QDebug>
+#include <QElapsedTimer>
 HashDialog::HashDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::HashDialog)
@@ -60,22 +61,29 @@ void HashDialog::calculate(QString filepath)
         hashmd5.reset();
         hashsha1.reset();
         hashsha256.reset();
-        char buf[4096];
+        QByteArray buffer(1024 * 1024, '\0');
         qint64 bytesRead;
         qint64 totalBytes = 0;
-        while ((bytesRead = in.read(buf, 4096)) > 0) {
+        QElapsedTimer updateTimer;
+        updateTimer.start();
+        while ((bytesRead = in.read(buffer.data(), buffer.size())) > 0) {
             if(haltCalc == true)
             {
                 break;
             }
             totalBytes+=bytesRead;
-            ui->progressBar->setValue(100.0*totalBytes/fileSize);
-            hashmd5.addData(buf, bytesRead);
-            hashsha1.addData(buf, bytesRead);
-            hashsha256.addData(buf, bytesRead);
-            QCoreApplication::processEvents();
+            hashmd5.addData(buffer.constData(), bytesRead);
+            hashsha1.addData(buffer.constData(), bytesRead);
+            hashsha256.addData(buffer.constData(), bytesRead);
+            if (updateTimer.elapsed() >= 50)
+            {
+                ui->progressBar->setValue(fileSize > 0 ? int(100 * totalBytes / fileSize) : 100);
+                QCoreApplication::processEvents();
+                updateTimer.restart();
+            }
 
         }
+        ui->progressBar->setValue(100);
         ui->progressBar->hide();
         if(haltCalc == false)
         {
@@ -103,4 +111,3 @@ void HashDialog::on_pushButton_2_clicked()
     haltCalc = true;
     this->hide();
 }
-

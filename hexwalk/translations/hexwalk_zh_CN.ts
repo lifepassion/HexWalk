@@ -494,16 +494,16 @@
     <name>HexWalkMain</name>
     <message>
         <location filename="../hexwalkmain.ui" line="26"/>
-        <location filename="../hexwalkmain.cpp" line="599"/>
+        <location filename="../hexwalkmain.cpp" line="597"/>
         <location filename="../hexwalkmain.cpp" line="723"/>
         <location filename="../hexwalkmain.cpp" line="787"/>
         <location filename="../hexwalkmain.cpp" line="809"/>
-        <location filename="../hexwalkmain.cpp" line="979"/>
-        <location filename="../hexwalkmain.cpp" line="1001"/>
-        <location filename="../hexwalkmain.cpp" line="1017"/>
-        <location filename="../hexwalkmain.cpp" line="1070"/>
-        <location filename="../hexwalkmain.cpp" line="1086"/>
-        <location filename="../hexwalkmain.cpp" line="1102"/>
+        <location filename="../hexwalkmain.cpp" line="1000"/>
+        <location filename="../hexwalkmain.cpp" line="1024"/>
+        <location filename="../hexwalkmain.cpp" line="1042"/>
+        <location filename="../hexwalkmain.cpp" line="1097"/>
+        <location filename="../hexwalkmain.cpp" line="1115"/>
+        <location filename="../hexwalkmain.cpp" line="1131"/>
         <source>HexWalk</source>
         <translation>HexWalk</translation>
     </message>
@@ -563,197 +563,227 @@
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="163"/>
+        <location filename="../hexwalkmain.cpp" line="155"/>
         <source>&amp;File</source>
         <translation>文件(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="170"/>
+        <location filename="../hexwalkmain.cpp" line="162"/>
         <source>Open Recent</source>
         <translation>最近打开</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="180"/>
+        <location filename="../hexwalkmain.cpp" line="172"/>
         <source>&amp;Edit</source>
         <translation>编辑(&amp;E)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="197"/>
+        <location filename="../hexwalkmain.cpp" line="176"/>
+        <source>Copy As</source>
+        <translation>复制为</translation>
+    </message>
+    <message>
+        <location filename="../hexwalkmain.cpp" line="177"/>
+        <source>Continuous Hex</source>
+        <translation>连续十六进制</translation>
+    </message>
+    <message>
+        <location filename="../hexwalkmain.cpp" line="178"/>
+        <source>Spaced Hex</source>
+        <translation>空格分隔十六进制</translation>
+    </message>
+    <message>
+        <location filename="../hexwalkmain.cpp" line="179"/>
+        <source>C Array</source>
+        <translation>C 数组</translation>
+    </message>
+    <message>
+        <location filename="../hexwalkmain.cpp" line="180"/>
+        <source>ASCII Text</source>
+        <translation>ASCII 文本</translation>
+    </message>
+    <message>
+        <location filename="../hexwalkmain.cpp" line="181"/>
+        <source>Addressed Hexdump</source>
+        <translation>带地址十六进制转储</translation>
+    </message>
+    <message>
+        <location filename="../hexwalkmain.cpp" line="195"/>
         <source>&amp;Analysis</source>
         <translation>分析(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="206"/>
+        <location filename="../hexwalkmain.cpp" line="204"/>
         <source>&amp;Tools</source>
         <translation>工具(&amp;T)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="211"/>
+        <location filename="../hexwalkmain.cpp" line="209"/>
         <source>&amp;Help</source>
         <translation>帮助(&amp;H)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="219"/>
+        <location filename="../hexwalkmain.cpp" line="217"/>
         <source>Address:</source>
         <translation>地址:</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="231"/>
+        <location filename="../hexwalkmain.cpp" line="229"/>
         <source>Size:</source>
         <translation>大小:</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="242"/>
+        <location filename="../hexwalkmain.cpp" line="240"/>
         <source>Lock:</source>
         <translation>锁定:</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="252"/>
+        <location filename="../hexwalkmain.cpp" line="250"/>
         <source>Ready</source>
         <translation>就绪</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="257"/>
+        <location filename="../hexwalkmain.cpp" line="255"/>
         <source>&amp;Open...</source>
         <translation>打开(&amp;O)...</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="259"/>
+        <location filename="../hexwalkmain.cpp" line="257"/>
         <source>Open an existing file</source>
         <translation>打开现有文件</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="262"/>
+        <location filename="../hexwalkmain.cpp" line="260"/>
         <source>&amp;Close...</source>
         <translation>关闭(&amp;C)...</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="264"/>
+        <location filename="../hexwalkmain.cpp" line="262"/>
         <source>Close current file</source>
         <translation>关闭当前文件</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="267"/>
+        <location filename="../hexwalkmain.cpp" line="265"/>
         <source>&amp;Save</source>
         <translation>保存(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="269"/>
+        <location filename="../hexwalkmain.cpp" line="267"/>
         <source>Save the document to disk</source>
         <translation>将文档保存到磁盘</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="272"/>
+        <location filename="../hexwalkmain.cpp" line="270"/>
         <source>Save &amp;As...</source>
         <translation>另存为(&amp;A)...</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="274"/>
+        <location filename="../hexwalkmain.cpp" line="272"/>
         <source>Save the document under a new name</source>
         <translation>用新名称保存文档</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="277"/>
+        <location filename="../hexwalkmain.cpp" line="275"/>
         <source>Save &amp;Readable...</source>
         <translation>保存为可读文本(&amp;R)...</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="278"/>
+        <location filename="../hexwalkmain.cpp" line="276"/>
         <source>Save document in readable form</source>
         <translation>将文档保存为可读文本</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="281"/>
+        <location filename="../hexwalkmain.cpp" line="279"/>
         <source>E&amp;xit</source>
         <translation>退出(&amp;X)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="283"/>
+        <location filename="../hexwalkmain.cpp" line="281"/>
         <source>Exit the application</source>
         <translation>退出应用程序</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="286"/>
+        <location filename="../hexwalkmain.cpp" line="284"/>
         <source>&amp;Undo</source>
         <translation>撤销(&amp;U)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="290"/>
+        <location filename="../hexwalkmain.cpp" line="288"/>
         <source>&amp;Redo</source>
         <translation>重做(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="294"/>
+        <location filename="../hexwalkmain.cpp" line="292"/>
         <source>&amp;Copy</source>
         <translation>复制(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="297"/>
+        <location filename="../hexwalkmain.cpp" line="295"/>
         <source>&amp;Paste</source>
         <translation>粘贴(&amp;P)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="300"/>
+        <location filename="../hexwalkmain.cpp" line="298"/>
         <source>&amp;Cut</source>
         <translation>剪切(&amp;T)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="304"/>
+        <location filename="../hexwalkmain.cpp" line="302"/>
         <source>&amp;Save Selection Readable...</source>
         <translation>将选区保存为可读文本(&amp;S)...</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="305"/>
+        <location filename="../hexwalkmain.cpp" line="303"/>
         <source>Save selection in readable form</source>
         <translation>将选区保存为可读文本</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="308"/>
+        <location filename="../hexwalkmain.cpp" line="306"/>
         <source>&amp;About</source>
         <translation>关于(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="309"/>
+        <location filename="../hexwalkmain.cpp" line="307"/>
         <source>Show the application&apos;s About box</source>
         <translation>显示应用程序关于窗口</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="312"/>
+        <location filename="../hexwalkmain.cpp" line="310"/>
         <source>&amp;Find</source>
         <translation>查找(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="314"/>
+        <location filename="../hexwalkmain.cpp" line="312"/>
         <source>Show the dialog for finding data</source>
         <translation>显示数据查找对话框</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="440"/>
+        <location filename="../hexwalkmain.cpp" line="438"/>
         <source>Decimal address</source>
         <translation>十进制地址</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="441"/>
+        <location filename="../hexwalkmain.cpp" line="439"/>
         <source>Enter a decimal byte address and press Enter</source>
         <translation>输入十进制字节地址并按回车键</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="447"/>
+        <location filename="../hexwalkmain.cpp" line="445"/>
         <source>Width</source>
         <translation>宽度</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="455"/>
+        <location filename="../hexwalkmain.cpp" line="453"/>
         <source>Bytes</source>
         <translation>字节</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="456"/>
+        <location filename="../hexwalkmain.cpp" line="454"/>
         <source>Number of bytes displayed per row</source>
         <translation>每行显示的字节数</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="1040"/>
+        <location filename="../hexwalkmain.cpp" line="1067"/>
         <source>Invalid address</source>
         <translation>地址无效</translation>
     </message>
@@ -766,145 +796,145 @@
         <translation type="vanished">显示查找/替换对话框</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="317"/>
+        <location filename="../hexwalkmain.cpp" line="315"/>
         <source>&amp;Overwrite/Insert mode</source>
         <translation>覆盖/插入模式(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="319"/>
+        <location filename="../hexwalkmain.cpp" line="317"/>
         <source>Toggle overwrite/insert mode</source>
         <translation>切换覆盖/插入模式</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="322"/>
+        <location filename="../hexwalkmain.cpp" line="320"/>
         <source>&amp;Options</source>
         <translation>选项(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="323"/>
+        <location filename="../hexwalkmain.cpp" line="321"/>
         <source>Options</source>
         <translation>选项</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="326"/>
+        <location filename="../hexwalkmain.cpp" line="324"/>
         <source>Find &amp;next</source>
         <translation>查找下一个(&amp;N)</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="328"/>
+        <location filename="../hexwalkmain.cpp" line="326"/>
         <source>Find next occurrence of the searched pattern</source>
         <translation>查找下一个匹配项</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="331"/>
+        <location filename="../hexwalkmain.cpp" line="329"/>
         <source>Advanced Find</source>
         <translation>高级查找</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="333"/>
+        <location filename="../hexwalkmain.cpp" line="331"/>
         <source>Advanced find tool</source>
         <translation>高级查找工具</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="336"/>
+        <location filename="../hexwalkmain.cpp" line="334"/>
         <source>Entropy</source>
         <translation>熵分析</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="338"/>
+        <location filename="../hexwalkmain.cpp" line="336"/>
         <source>Calculate entropy of file</source>
         <translation>计算文件熵值</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="341"/>
+        <location filename="../hexwalkmain.cpp" line="339"/>
         <source>Diff Analysis</source>
         <translation>差异分析</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="342"/>
+        <location filename="../hexwalkmain.cpp" line="340"/>
         <source>do diff compare byte to byte</source>
         <translation>逐字节比较差异</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="345"/>
+        <location filename="../hexwalkmain.cpp" line="343"/>
         <source>Binary Analysis</source>
         <translation>二进制分析</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="346"/>
+        <location filename="../hexwalkmain.cpp" line="344"/>
         <source>make binary analysis with Binwalk</source>
         <translation>使用 Binwalk 进行二进制分析</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="349"/>
+        <location filename="../hexwalkmain.cpp" line="347"/>
         <source>Number Converter</source>
         <translation>数字转换器</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="350"/>
+        <location filename="../hexwalkmain.cpp" line="348"/>
         <source>Useful number converter</source>
         <translation>实用数字转换器</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="353"/>
-        <location filename="../hexwalkmain.cpp" line="354"/>
+        <location filename="../hexwalkmain.cpp" line="351"/>
+        <location filename="../hexwalkmain.cpp" line="352"/>
         <source>Hash Calculator</source>
         <translation>哈希计算器</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="357"/>
-        <location filename="../hexwalkmain.cpp" line="358"/>
+        <location filename="../hexwalkmain.cpp" line="355"/>
+        <location filename="../hexwalkmain.cpp" line="356"/>
         <source>Byte Patterns</source>
         <translation>字节模式</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="361"/>
-        <location filename="../hexwalkmain.cpp" line="362"/>
+        <location filename="../hexwalkmain.cpp" line="359"/>
+        <location filename="../hexwalkmain.cpp" line="360"/>
         <source>Search Strings</source>
         <translation>搜索字符串</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="365"/>
+        <location filename="../hexwalkmain.cpp" line="363"/>
         <source>ByteMap</source>
         <translation>字节图</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="366"/>
+        <location filename="../hexwalkmain.cpp" line="364"/>
         <source>Byte Map</source>
         <translation>字节图</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="369"/>
+        <location filename="../hexwalkmain.cpp" line="367"/>
         <source>Disasm</source>
         <translation>反汇编</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="370"/>
+        <location filename="../hexwalkmain.cpp" line="368"/>
         <source>Disassembler</source>
         <translation>反汇编器</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="398"/>
+        <location filename="../hexwalkmain.cpp" line="396"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="405"/>
+        <location filename="../hexwalkmain.cpp" line="403"/>
         <source>Edit</source>
         <translation>编辑</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="413"/>
+        <location filename="../hexwalkmain.cpp" line="411"/>
         <source>Analysis</source>
         <translation>分析</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="431"/>
+        <location filename="../hexwalkmain.cpp" line="429"/>
         <source>Go to</source>
         <translation>跳转</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="439"/>
+        <location filename="../hexwalkmain.cpp" line="437"/>
         <source>0</source>
         <translation>0</translation>
     </message>
@@ -913,7 +943,7 @@
         <translation type="vanished">十进制</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="454"/>
+        <location filename="../hexwalkmain.cpp" line="452"/>
         <source>16</source>
         <translation>16</translation>
     </message>
@@ -922,29 +952,29 @@
         <translation type="vanished">字节</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="513"/>
+        <location filename="../hexwalkmain.cpp" line="511"/>
         <source>Selection</source>
         <translation>选区</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="600"/>
+        <location filename="../hexwalkmain.cpp" line="598"/>
         <source>Cannot read file %1:
 %2.</source>
         <translation>无法读取文件 %1:
 %2。</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="606"/>
+        <location filename="../hexwalkmain.cpp" line="604"/>
         <source>File loaded</source>
         <translation>文件已加载</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="615"/>
+        <location filename="../hexwalkmain.cpp" line="613"/>
         <source>About HexWalk</source>
         <translation>关于 HexWalk</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="616"/>
+        <location filename="../hexwalkmain.cpp" line="614"/>
         <source>HexWalk %1 is an HEX editor/viewer/analyzer.&lt;br&gt;It is open source and it is based on QT, qhexedit2, binwalk.&lt;br&gt;Sources at &lt;a href=&apos;https://github.com/gcarmix/HexWalk&apos;&gt;Github&lt;/a&gt;.&lt;br&gt;</source>
         <translation>HexWalk %1 是一个十六进制查看器/分析器。&lt;br&gt;它是开源软件，基于 Qt、qhexedit2 和 binwalk。&lt;br&gt;源码位于 &lt;a href=&apos;https://github.com/gcarmix/HexWalk&apos;&gt;Github&lt;/a&gt;。&lt;br&gt;</translation>
     </message>
@@ -980,32 +1010,32 @@
 %2。</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="913"/>
+        <location filename="../hexwalkmain.cpp" line="925"/>
         <source>Row</source>
         <translation>行</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="916"/>
+        <location filename="../hexwalkmain.cpp" line="928"/>
         <source>Column</source>
         <translation>列</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="946"/>
+        <location filename="../hexwalkmain.cpp" line="963"/>
         <source>Read-only</source>
         <translation>只读</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="946"/>
+        <location filename="../hexwalkmain.cpp" line="963"/>
         <source>Editable</source>
         <translation>可编辑</translation>
     </message>
     <message>
-        <location filename="../hexwalkmain.cpp" line="980"/>
-        <location filename="../hexwalkmain.cpp" line="1002"/>
-        <location filename="../hexwalkmain.cpp" line="1018"/>
-        <location filename="../hexwalkmain.cpp" line="1071"/>
-        <location filename="../hexwalkmain.cpp" line="1087"/>
-        <location filename="../hexwalkmain.cpp" line="1103"/>
+        <location filename="../hexwalkmain.cpp" line="1001"/>
+        <location filename="../hexwalkmain.cpp" line="1025"/>
+        <location filename="../hexwalkmain.cpp" line="1043"/>
+        <location filename="../hexwalkmain.cpp" line="1098"/>
+        <location filename="../hexwalkmain.cpp" line="1116"/>
+        <location filename="../hexwalkmain.cpp" line="1132"/>
         <source>You must select a file first.</source>
         <translation>请先选择一个文件。</translation>
     </message>
@@ -1122,17 +1152,47 @@
 <context>
     <name>QHexEdit</name>
     <message>
-        <location filename="../../qhexedit/qhexedit.cpp" line="1415"/>
+        <location filename="../../qhexedit/qhexedit.cpp" line="1427"/>
         <source>Copy</source>
         <translation>复制</translation>
     </message>
     <message>
-        <location filename="../../qhexedit/qhexedit.cpp" line="1420"/>
+        <location filename="../../qhexedit/qhexedit.cpp" line="1430"/>
+        <source>Copy As</source>
+        <translation>复制为</translation>
+    </message>
+    <message>
+        <location filename="../../qhexedit/qhexedit.cpp" line="1431"/>
+        <source>Continuous Hex</source>
+        <translation>连续十六进制</translation>
+    </message>
+    <message>
+        <location filename="../../qhexedit/qhexedit.cpp" line="1432"/>
+        <source>Spaced Hex</source>
+        <translation>空格分隔十六进制</translation>
+    </message>
+    <message>
+        <location filename="../../qhexedit/qhexedit.cpp" line="1433"/>
+        <source>C Array</source>
+        <translation>C 数组</translation>
+    </message>
+    <message>
+        <location filename="../../qhexedit/qhexedit.cpp" line="1434"/>
+        <source>ASCII Text</source>
+        <translation>ASCII 文本</translation>
+    </message>
+    <message>
+        <location filename="../../qhexedit/qhexedit.cpp" line="1435"/>
+        <source>Addressed Hexdump</source>
+        <translation>带地址十六进制转储</translation>
+    </message>
+    <message>
+        <location filename="../../qhexedit/qhexedit.cpp" line="1439"/>
         <source>Cut</source>
         <translation>剪切</translation>
     </message>
     <message>
-        <location filename="../../qhexedit/qhexedit.cpp" line="1427"/>
+        <location filename="../../qhexedit/qhexedit.cpp" line="1446"/>
         <source>Paste</source>
         <translation>粘贴</translation>
     </message>

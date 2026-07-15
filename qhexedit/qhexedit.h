@@ -276,6 +276,9 @@ public:
     /*! Return the selected content of QHexEdit as QByteArray
     */
     QByteArray selectedDataBa();
+    /*! Return the selected byte count without reading the underlying device.
+    */
+    qint64 selectionSize();
     /*! Set Font of QHexEdit
      * \param font
      */
@@ -297,6 +300,12 @@ public slots:
       there is no undo step in the undo/redo history, nothing happens.
       */
     void undo();
+    void copyText();
+    void copyHexContinuous();
+    void copyHexSpaced();
+    void copyCArray();
+    void copyAscii();
+    void copyReadable();
 
 signals:
 
@@ -398,7 +407,9 @@ private:
     void readBuffers();
     void selectSearchResult(qint64 bytePosition, qint64 byteLength);
     void setMouseSelection(qint64 cursorPosition);
-    QString toReadable(const QByteArray &ba);
+    QString toReadable(const QByteArray &ba, qint64 startPosition = 0);
+    QByteArray selectedBytes();
+    void setClipboardText(const QString &text);
 
 private slots:
     void adjust();                              // recalc pixel positions
@@ -406,7 +417,6 @@ private slots:
     void refresh();                             // ensureVisible() and readBuffers()
     void updateCursor();                        // update blinking cursor
     void showContextMenu(const QPoint &pos);
-    void copyText();
     void pasteText();
     void cutText();
 

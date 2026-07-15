@@ -167,17 +167,17 @@ private:
     Ui::HexWalkMain *ui;
     QHexEdit *hexEdit;
 
-    EntropyDialog *entropyDialog;
-    ByteMapDialog *byteMapDialog;
-    HashDialog * hashDialog;
-    SearchDialog *searchDialog;
-    binanalysisdialog * analysisDialog;
-    AdvancedSearchDialog *advancedSearchDialog;
+    EntropyDialog *entropyDialog = nullptr;
+    ByteMapDialog *byteMapDialog = nullptr;
+    HashDialog * hashDialog = nullptr;
+    SearchDialog *searchDialog = nullptr;
+    binanalysisdialog * analysisDialog = nullptr;
+    AdvancedSearchDialog *advancedSearchDialog = nullptr;
     OptionsDialog *optionsDialog;
     TagsDialog *tagsDialog;
-    DiffDialog *diffDialog;
-    StringsDialog *stringsDialog;
-    DisasmWidget * disasmWidget;
+    DiffDialog *diffDialog = nullptr;
+    StringsDialog *stringsDialog = nullptr;
+    DisasmWidget * disasmWidget = nullptr;
     ConverterWidget * converterWidget;
     QLabel *lbAddress, *lbAddressName;
     QLabel *lbOverwriteMode, *lbOverwriteModeName;

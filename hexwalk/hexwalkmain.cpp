@@ -33,6 +33,8 @@
 #include <QPixmap>
 #include <QSizePolicy>
 #include <QStyle>
+#include <QtEndian>
+#include <cstring>
 
 #include "hexwalkmain.h"
 #include "ui_hexwalkmain.h"
@@ -127,19 +129,9 @@ void HexWalkMain::init()
     hexEdit = ui->widget;
     connect(hexEdit, SIGNAL(overwriteModeChanged(bool)), this, SLOT(setOverwriteMode(bool)));
     connect(hexEdit, SIGNAL(dataChanged()), this, SLOT(dataChanged()));
-    searchDialog = new SearchDialog(hexEdit, this);
-    advancedSearchDialog = new AdvancedSearchDialog(hexEdit,this);
     optionsDialog = new OptionsDialog(appSettings,this);
     connect(optionsDialog,SIGNAL(accepted()),this,SLOT(updateOptions()));
-    entropyDialog = new EntropyDialog(hexEdit,this);
-    analysisDialog = new binanalysisdialog(hexEdit,this);
-    hashDialog = new HashDialog(this);
-    diffDialog = new DiffDialog(this);
     tagsDialog = new TagsDialog(hexEdit,this);
-    stringsDialog = new StringsDialog(hexEdit,this);
-    byteMapDialog = new ByteMapDialog(hexEdit,this);
-    //disasmDialog = new DisasmDialog(hexEdit,this);
-    disasmWidget = new DisasmWidget(hexEdit,this);
     converterWidget = new ConverterWidget(this);
 
     createActions();
@@ -181,6 +173,12 @@ void HexWalkMain::createMenus()
     editMenu->addAction(undoAct);
     editMenu->addAction(redoAct);
     editMenu->addAction(copyAct);
+    QMenu *copyAsMenu = editMenu->addMenu(tr("Copy As"));
+    copyAsMenu->addAction(tr("Continuous Hex"), hexEdit, &QHexEdit::copyHexContinuous);
+    copyAsMenu->addAction(tr("Spaced Hex"), hexEdit, &QHexEdit::copyHexSpaced);
+    copyAsMenu->addAction(tr("C Array"), hexEdit, &QHexEdit::copyCArray);
+    copyAsMenu->addAction(tr("ASCII Text"), hexEdit, &QHexEdit::copyAscii);
+    copyAsMenu->addAction(tr("Addressed Hexdump"), hexEdit, &QHexEdit::copyReadable);
     editMenu->addAction(pasteAct);
     editMenu->addAction(cutAct);
     editMenu->addAction(saveSelectionReadable);
@@ -698,6 +696,8 @@ void HexWalkMain::writeSettings()
 
 void HexWalkMain::findNext()
 {
+    if (!searchDialog)
+        searchDialog = new SearchDialog(hexEdit, this);
     searchDialog->findNext();
 }
 
@@ -823,41 +823,49 @@ void HexWalkMain::saveToReadableFile()
 
 void HexWalkMain::updateInfo()
 {
-    int selSize = hexEdit->selectedDataBa().size();
+    const qint64 selSize = hexEdit->selectionSize();
 
     ui->selTextedit->setText(QString::number(selSize,10));
     if(selSize > 0)
     {
-        ui->asciiTextEdit->setText(binToStr(hexEdit->selectedDataBa()));
-        ui->hexTextedit->setText(hexEdit->selectedData().toUpper());
-
         if(selSize <= 8)
         {
-            converterWidget->update(hexEdit->selectedData().toUpper());
+            const QByteArray selectedBytes = hexEdit->selectedDataBa();
+            const QByteArray hexData = selectedBytes.toHex().toUpper();
+            QByteArray littleEndianBytes = selectedBytes;
+            std::reverse(littleEndianBytes.begin(), littleEndianBytes.end());
+            const QByteArray littleEndianHex = littleEndianBytes.toHex();
+
+            ui->asciiTextEdit->setText(binToStr(selectedBytes));
+            ui->hexTextedit->setText(QString::fromLatin1(hexData));
+            converterWidget->update(QString::fromLatin1(hexData));
             if(selSize == 4 || selSize == 8)
             {
-
-                qint64 num = hexEdit->selectedData().toULongLong(NULL,16);
-                QByteArray baValue = hexEdit->selectedDataBa();
                 if(selSize == 4)
                 {
-                    float *numf;
-                    numf = (float *)&num;
-                    ui->floatTextedit_be->setText(QString::number(*numf));
-                    std::reverse(baValue.begin(),baValue.end());
-                    num = baValue.toHex().toULongLong(NULL,16);
-                    numf = (float *)&num;
-                    ui->floatTextedit_le->setText(QString::number(*numf));
+                    const quint32 bigEndianBits = qFromBigEndian<quint32>(
+                        reinterpret_cast<const uchar *>(selectedBytes.constData()));
+                    const quint32 littleEndianBits = qFromLittleEndian<quint32>(
+                        reinterpret_cast<const uchar *>(selectedBytes.constData()));
+                    float bigEndianFloat;
+                    float littleEndianFloat;
+                    std::memcpy(&bigEndianFloat, &bigEndianBits, sizeof(bigEndianFloat));
+                    std::memcpy(&littleEndianFloat, &littleEndianBits, sizeof(littleEndianFloat));
+                    ui->floatTextedit_be->setText(QString::number(bigEndianFloat));
+                    ui->floatTextedit_le->setText(QString::number(littleEndianFloat));
                 }
                 else
                 {
-                    double *numf;
-                    numf = (double *)&num;
-                    ui->floatTextedit_be->setText(QString::number(*numf));
-                    std::reverse(baValue.begin(),baValue.end());
-                    num = baValue.toHex().toULongLong(NULL,16);
-                    numf = (double *)&num;
-                    ui->floatTextedit_le->setText(QString::number(*numf));
+                    const quint64 bigEndianBits = qFromBigEndian<quint64>(
+                        reinterpret_cast<const uchar *>(selectedBytes.constData()));
+                    const quint64 littleEndianBits = qFromLittleEndian<quint64>(
+                        reinterpret_cast<const uchar *>(selectedBytes.constData()));
+                    double bigEndianDouble;
+                    double littleEndianDouble;
+                    std::memcpy(&bigEndianDouble, &bigEndianBits, sizeof(bigEndianDouble));
+                    std::memcpy(&littleEndianDouble, &littleEndianBits, sizeof(littleEndianDouble));
+                    ui->floatTextedit_be->setText(QString::number(bigEndianDouble));
+                    ui->floatTextedit_le->setText(QString::number(littleEndianDouble));
                 }
             }
             else
@@ -865,29 +873,25 @@ void HexWalkMain::updateInfo()
                 ui->floatTextedit_le->setText("-");
                 ui->floatTextedit_be->setText("-");
             }
-            QByteArray baValue = hexEdit->selectedDataBa();
             if(ui->signedcb->isChecked())
             {
                 if(selSize < 5)
                 {
-                    ui->decTextedit->setText(QString("%1").arg((signed int)hexEdit->selectedData().toUInt(NULL,16)));
-                    std::reverse(baValue.begin(),baValue.end());
-                    ui->intleTextedit->setText(QString("%1").arg((signed int)baValue.toHex().toUInt(NULL,16)));
+                    ui->decTextedit->setText(QString("%1").arg((signed int)hexData.toUInt(NULL,16)));
+                    ui->intleTextedit->setText(QString("%1").arg((signed int)littleEndianHex.toUInt(NULL,16)));
                 }
                 else
                 {
-                    ui->decTextedit->setText(QString("%1").arg((signed long long)hexEdit->selectedData().toULongLong(NULL,16)));
-                    std::reverse(baValue.begin(),baValue.end());
-                    ui->intleTextedit->setText(QString("%1").arg((signed long long)baValue.toHex().toULongLong(NULL,16)));
+                    ui->decTextedit->setText(QString("%1").arg((signed long long)hexData.toULongLong(NULL,16)));
+                    ui->intleTextedit->setText(QString("%1").arg((signed long long)littleEndianHex.toULongLong(NULL,16)));
                 }
             }
             else
             {
-                ui->decTextedit->setText(QString("%1").arg(hexEdit->selectedData().toULongLong(NULL,16)));
-                std::reverse(baValue.begin(),baValue.end());
-                ui->intleTextedit->setText(QString("%1").arg(baValue.toHex().toULongLong(NULL,16)));
+                ui->decTextedit->setText(QString("%1").arg(hexData.toULongLong(NULL,16)));
+                ui->intleTextedit->setText(QString("%1").arg(littleEndianHex.toULongLong(NULL,16)));
             }
-            ui->binTextedit->setText(QString("%1").arg(hexEdit->selectedData().toULongLong(NULL,16),8,2,QLatin1Char('0')));
+            ui->binTextedit->setText(QString("%1").arg(hexData.toULongLong(NULL,16),selSize * 8,2,QLatin1Char('0')));
         }
         else
         {
@@ -897,9 +901,17 @@ void HexWalkMain::updateInfo()
             ui->binTextedit->setText("-");
             ui->hexTextedit->setText("-");
             ui->asciiTextEdit->setText("-");
-
-
         }
+    }
+    else
+    {
+        ui->asciiTextEdit->setText("-");
+        ui->decTextedit->setText("-");
+        ui->floatTextedit_le->setText("-");
+        ui->floatTextedit_be->setText("-");
+        ui->hexTextedit->setText("-");
+        ui->intleTextedit->setText("-");
+        ui->binTextedit->setText("-");
     }
 }
 void HexWalkMain::setAddress(qint64 address)
@@ -920,17 +932,22 @@ void HexWalkMain::setAddress(qint64 address)
     {
         if(address < hexEdit->getSize())
         {
-            if(hexEdit->selectedDataBa().size() > 0)
+            if(hexEdit->selectionSize() > 0)
             {
 
                 updateInfo();
             }
             else
             {
-                ui->hexTextedit->setText(QString("%1").arg(uchar(hexEdit->dataAt(address,1).at(0)),2,16,QLatin1Char('0')).toUpper());
-                ui->decTextedit->setText(QString("%1").arg(uchar(hexEdit->dataAt(address,1).at(0)),3,10));
-                ui->intleTextedit->setText(QString("%1").arg(uchar(hexEdit->dataAt(address,1).at(0)),3,10));
-                ui->binTextedit->setText(QString("%1").arg(uchar(hexEdit->dataAt(address,1).at(0)),8,2,QLatin1Char('0')));
+                const QByteArray currentByte = hexEdit->dataAt(address, 1);
+                if (!currentByte.isEmpty())
+                {
+                    const uchar value = uchar(currentByte.at(0));
+                    ui->hexTextedit->setText(QString("%1").arg(value,2,16,QLatin1Char('0')).toUpper());
+                    ui->decTextedit->setText(QString("%1").arg(value,3,10));
+                    ui->intleTextedit->setText(QString("%1").arg(value,3,10));
+                    ui->binTextedit->setText(QString("%1").arg(value,8,2,QLatin1Char('0')));
+                }
             }
 
         }
@@ -959,11 +976,15 @@ void HexWalkMain::setSize(qint64 size)
 
 void HexWalkMain::showSearchDialog()
 {
+    if (!searchDialog)
+        searchDialog = new SearchDialog(hexEdit, this);
     searchDialog->show();
 }
 
 void HexWalkMain::showAdvancedSearchDialog()
 {
+    if (!advancedSearchDialog)
+        advancedSearchDialog = new AdvancedSearchDialog(hexEdit, this);
     advancedSearchDialog->show();
 }
 
@@ -984,6 +1005,8 @@ void HexWalkMain::showDiffDialog()
     {
         diffFile = QFileDialog::getOpenFileName(this);
         if (!diffFile.isEmpty()) {
+        if (!diffDialog)
+            diffDialog = new DiffDialog(this);
         diffDialog->setFiles(curFile,diffFile);
         diffDialog->show();
 
@@ -1004,6 +1027,8 @@ void HexWalkMain::showEntropyDialog()
     }
     else
     {
+        if (!entropyDialog)
+            entropyDialog = new EntropyDialog(hexEdit, this);
         entropyDialog->show();
         entropyDialog->calculate();
     }
@@ -1020,6 +1045,8 @@ void HexWalkMain::showBinaryDialog()
     }
     else
     {
+        if (!analysisDialog)
+            analysisDialog = new binanalysisdialog(hexEdit, this);
         analysisDialog->show();
         analysisDialog->analyze(curFile);
     }
@@ -1073,6 +1100,8 @@ void HexWalkMain::showHashDialog()
     }
     else
     {
+        if (!hashDialog)
+            hashDialog = new HashDialog(this);
         hashDialog->show();
         hashDialog->calculate(curFile);
     }
@@ -1105,6 +1134,8 @@ void HexWalkMain::showStringsDialog()
     }
     else
     {
+        if (!stringsDialog)
+            stringsDialog = new StringsDialog(hexEdit, this);
         stringsDialog->show();
 
     }
@@ -1229,10 +1260,14 @@ void HexWalkMain::on_signedcb_clicked()
 
 void HexWalkMain::showByteMap()
 {
+    if (!byteMapDialog)
+        byteMapDialog = new ByteMapDialog(hexEdit, this);
     byteMapDialog->showByteMapDialog();
 }
 
 void HexWalkMain::showDisasm()
 {
+    if (!disasmWidget)
+        disasmWidget = new DisasmWidget(hexEdit, this);
     disasmWidget->show();
 }

@@ -57,7 +57,12 @@ void ByteMapDialog::updatePos()
     if(ui->byteMap->getCurrentPosition() < _hexedit->getSize())
     {
         ui->edtAddress->setText(QString::asprintf("%02llX (%lld)",ui->byteMap->getCurrentPosition(),ui->byteMap->getCurrentPosition()));
-        ui->edtValue->setText(QString::asprintf("%02X (%u)",(unsigned char)(_hexedit->dataAt(ui->byteMap->getCurrentPosition(),1).at(0)),(unsigned char)(_hexedit->dataAt(ui->byteMap->getCurrentPosition(),1).at(0))));
+        const QByteArray currentByte = _hexedit->dataAt(ui->byteMap->getCurrentPosition(), 1);
+        if (!currentByte.isEmpty())
+        {
+            const unsigned char value = static_cast<unsigned char>(currentByte.at(0));
+            ui->edtValue->setText(QString::asprintf("%02X (%u)", value, value));
+        }
     }
 
 }
@@ -94,4 +99,3 @@ void ByteMapDialog::on_spinPixels_valueChanged(int arg1)
 {
         ui->byteMap->setPixelSize(arg1);
 }
-

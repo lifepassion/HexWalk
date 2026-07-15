@@ -511,8 +511,8 @@ void QHexEdit::redo()
 
 QString QHexEdit::selectionToReadableString()
 {
-    QByteArray ba = _chunks->data(getSelectionBegin(), getSelectionEnd() - getSelectionBegin());
-    return toReadable(ba);
+    QByteArray ba = selectedBytes();
+    return toReadable(ba, getSelectionBegin());
 }
 
 QString QHexEdit::selectedData()
@@ -522,8 +522,12 @@ QString QHexEdit::selectedData()
 }
 QByteArray QHexEdit::selectedDataBa()
 {
-    QByteArray ba = _chunks->data(getSelectionBegin(), getSelectionEnd() - getSelectionBegin());
-    return ba;
+    return selectedBytes();
+}
+
+qint64 QHexEdit::selectionSize()
+{
+    return getSelectionEnd() - getSelectionBegin();
 }
 
 
@@ -1378,13 +1382,13 @@ void QHexEdit::readBuffers()
     _hexDataShown = QByteArray(_dataShown.toHex());
 }
 
-QString QHexEdit::toReadable(const QByteArray &ba)
+QString QHexEdit::toReadable(const QByteArray &ba, qint64 startPosition)
 {
     QString result;
 
     for (int i=0; i < ba.size(); i += 16)
     {
-        QString addrStr = QString("%1").arg(_addressOffset + i, addressWidth(), 16, QChar('0'));
+        QString addrStr = QString("%1").arg(_addressOffset + startPosition + i, addressWidth(), 16, QChar('0'));
         QString hexStr;
         QString ascStr;
         for (int j=0; j<16; j++)
@@ -1423,6 +1427,13 @@ void QHexEdit::showContextMenu(const QPoint &pos)
             QAction *copyAction = contextMenu.addAction(tr("Copy"));
             connect(copyAction, &QAction::triggered, this, &QHexEdit::copyText);
 
+            QMenu *copyAsMenu = contextMenu.addMenu(tr("Copy As"));
+            copyAsMenu->addAction(tr("Continuous Hex"), this, &QHexEdit::copyHexContinuous);
+            copyAsMenu->addAction(tr("Spaced Hex"), this, &QHexEdit::copyHexSpaced);
+            copyAsMenu->addAction(tr("C Array"), this, &QHexEdit::copyCArray);
+            copyAsMenu->addAction(tr("ASCII Text"), this, &QHexEdit::copyAscii);
+            copyAsMenu->addAction(tr("Addressed Hexdump"), this, &QHexEdit::copyReadable);
+
             if (!_readOnly)
             {
                 QAction *cutAction = contextMenu.addAction(tr("Cut"));
@@ -1441,17 +1452,28 @@ void QHexEdit::showContextMenu(const QPoint &pos)
 
 
 }
-void QHexEdit::copyText(){
+QByteArray QHexEdit::selectedBytes()
+{
+    return _chunks->data(getSelectionBegin(), selectionSize());
+}
+
+void QHexEdit::setClipboardText(const QString &text)
+{
+    QApplication::clipboard()->setText(text);
+}
+
+void QHexEdit::copyText()
+{
     QByteArray ba;
     if(!_editAreaIsAscii)
     {
-        ba = _chunks->data(getSelectionBegin(), getSelectionEnd() - getSelectionBegin()).toHex();
+        ba = selectedBytes().toHex();
         for (qint64 idx = 32; idx < ba.size(); idx +=33)
             ba.insert(idx, "\n");
     }
     else
     {
-        ba = _chunks->data(getSelectionBegin(), getSelectionEnd() - getSelectionBegin());
+        ba = selectedBytes();
         for (int i = 0; i < ba.length(); i++) {
             if(ba.at(i) < 32 || ba.at(i) > 126)
             {
@@ -1459,10 +1481,47 @@ void QHexEdit::copyText(){
             }
         }
     }
+    setClipboardText(QString::fromLatin1(ba));
+}
 
+void QHexEdit::copyHexContinuous()
+{
+    setClipboardText(QString::fromLatin1(selectedBytes().toHex().toUpper()));
+}
 
-    QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(ba);
+void QHexEdit::copyHexSpaced()
+{
+    setClipboardText(QString::fromLatin1(selectedBytes().toHex(' ').toUpper()));
+}
+
+void QHexEdit::copyCArray()
+{
+    const QByteArray bytes = selectedBytes();
+    QStringList values;
+    values.reserve(bytes.size());
+    for (unsigned char byte : bytes)
+    {
+        const QString hexByte = QString("%1").arg(byte, 2, 16, QLatin1Char('0')).toUpper();
+        values.append(QString("0x%1").arg(hexByte));
+    }
+    setClipboardText(QString("{%1}").arg(values.join(", ")));
+}
+
+void QHexEdit::copyAscii()
+{
+    QByteArray bytes = selectedBytes();
+    for (int i = 0; i < bytes.size(); ++i)
+    {
+        const unsigned char byte = static_cast<unsigned char>(bytes.at(i));
+        if (byte < 32 || byte > 126)
+            bytes[i] = '.';
+    }
+    setClipboardText(QString::fromLatin1(bytes));
+}
+
+void QHexEdit::copyReadable()
+{
+    setClipboardText(toReadable(selectedBytes(), getSelectionBegin()));
 }
 void QHexEdit::pasteText(){
     if (_readOnly)
