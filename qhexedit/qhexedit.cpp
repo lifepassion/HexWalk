@@ -945,11 +945,19 @@ void QHexEdit::mousePressEvent(QMouseEvent * event)
     _blink = false;
     viewport()->update();
     qint64 cPos = cursorPosition(event->pos());
-    if (cPos >= 0)
+    if (cPos >= 0 && cPos / 2 < _chunks->size())
     {
         if (event->button() != Qt::RightButton)
-            resetSelection(cPos);
-        setCursorPosition(cPos);
+        {
+            const qint64 bytePosition = (cPos / 2) * 2;
+            resetSelection(bytePosition);
+            setSelection(bytePosition + 2);
+            setCursorPosition(bytePosition);
+        }
+        else
+        {
+            setCursorPosition(cPos);
+        }
     }
 }
 
